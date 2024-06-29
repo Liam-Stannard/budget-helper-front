@@ -1,0 +1,8 @@
+<form [formGroup]="form" class="flex col-start" >
+  <label for="username">Username</label>
+  <input type="text" id="username" name="username" [formControl]="form.controls.username">
+
+  <label for="password">Password</label>
+  <input type="text" id="password" name="password" [formControl]="form.controls.password">
+  <button (click)="submit()">Submit</button> 
+</form>
