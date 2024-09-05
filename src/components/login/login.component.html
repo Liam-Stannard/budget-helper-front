@@ -1,8 +1,31 @@
-<form [formGroup]="form" class="flex col-start" >
-  <label for="username">Username</label>
-  <input type="text" id="username" name="username" [formControl]="form.controls.username">
-
-  <label for="password">Password</label>
-  <input type="text" id="password" name="password" [formControl]="form.controls.password">
-  <button (click)="submit()">Submit</button> 
-</form>
+<mat-card class="flex-center-col login">
+  <mat-card-header>
+    <mat-card-title class="login-title">Login</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <form [formGroup]="form" class="flex col-start">
+      <mat-form-field appearance="outline">
+        <mat-label>Username</mat-label>
+        <input
+          matInput
+          id="username"
+          name="username"
+          [formControl]="form.controls.username"
+        />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Password</mat-label>
+        <input
+          matInput
+          type="text"
+          id="password"
+          name="password"
+          [formControl]="form.controls.password"
+        />
+      </mat-form-field>
+    </form>
+  </mat-card-content>
+  <mat-card-actions>
+    <button mat-raised-button color="primary" (click)="login()">Submit</button>
+  </mat-card-actions>
+</mat-card>

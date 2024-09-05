@@ -1,0 +1,8 @@
+<h1 class="mat-h1">Your Shopping Lists</h1>
+<div class="shopping-lists-list">
+  @if (!loading) { @for (list of data.lists; track list.name) {
+  <app-shopping-list-card [data]="list" />
+  } @empty {
+  <p>There are no items.</p>
+  } }
+</div>
