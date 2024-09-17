@@ -1,22 +1,19 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { BaseComponent } from '../base/base.component';
-import { IShoppingListsResponse } from '../../services/api/interfaces/api.service.interfaces';
+import { ITransactionsResponse } from '../../services/api/interfaces/transaction.interface';
 import { ApiService } from '../../services/api/api.service';
 import { Observable } from 'rxjs';
-import { ShoppingListCardComponent } from '../../app/shopping-list-card/shopping-list-card.component';
 import { CommonModule } from '@angular/common';
+import { TransactionListComponent } from '../transaction/transaction-list/transaction-list.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, ShoppingListCardComponent],
+  imports: [CommonModule, TransactionListComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
-export class HomeComponent
-  extends BaseComponent<IShoppingListsResponse>
-  implements OnInit, OnDestroy
-{
+export class HomeComponent extends BaseComponent implements OnInit, OnDestroy {
   constructor(protected apiService: ApiService) {
     super();
   }
@@ -26,9 +23,5 @@ export class HomeComponent
 
   override ngOnDestroy(): void {
     super.ngOnDestroy();
-  }
-
-  protected override getObservable(): Observable<IShoppingListsResponse> {
-    return this.apiService.getShoppingLists();
   }
 }

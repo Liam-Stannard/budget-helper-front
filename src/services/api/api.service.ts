@@ -1,8 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { URL_SHOPPING_LISTS } from './constants/api.service.constants';
-import { IShoppingListsResponse } from './interfaces/api.service.interfaces';
+import { URL_EXPENSE } from './constants/api.service.constants';
+import {
+  ITransaction,
+  ITransactionsResponse,
+} from './interfaces/transaction.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -10,7 +13,19 @@ import { IShoppingListsResponse } from './interfaces/api.service.interfaces';
 export class ApiService {
   constructor(private httpClient: HttpClient) {}
 
-  getShoppingLists(): Observable<IShoppingListsResponse> {
-    return this.httpClient.get<IShoppingListsResponse>(URL_SHOPPING_LISTS);
+  getExpense(): Observable<ITransactionsResponse> {
+    return this.httpClient.get<ITransactionsResponse>(URL_EXPENSE);
+  }
+
+  deleteExpense(id: number): Observable<any> {
+    return this.httpClient.delete<any>(`${URL_EXPENSE}/${id}`);
+  }
+
+  putExpense(expense: ITransaction): Observable<any> {
+    return this.httpClient.put<any>(`${URL_EXPENSE}/${expense.id}`, expense);
+  }
+
+  postExpense(expense: ITransaction): Observable<any> {
+    return this.httpClient.post<any>(URL_EXPENSE, expense);
   }
 }

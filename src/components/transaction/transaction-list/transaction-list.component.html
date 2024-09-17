@@ -1,0 +1,36 @@
+<div class="transaction-list-wrapper">
+  <div class="transaction-table">
+    @if (!loading && data && data.length > 0) {
+
+    <table>
+      <th>ID</th>
+      <th>Title</th>
+      <th>Amount</th>
+      <th>Date</th>
+      <th>Account</th>
+      <th>Category</th>
+
+      @for (item of data; track item.id) {
+      <tr>
+        <td>{{ item.id }}</td>
+        <td>{{ item.title }}</td>
+        <td>{{ item.amount }}</td>
+        <td>{{ item.date }}</td>
+        <td>{{ item.account }}</td>
+        <td>{{ item.category }}</td>
+        <td><button (click)="delete(item)">Delete</button></td>
+        <td><button (click)="edit(item)">Edit</button></td>
+      </tr>
+      }
+    </table>
+    } @else if (!loading && data && data.length === 0) {
+
+    <p>There are no items.</p>
+    } @else {
+    <p>Loading...</p>
+    }
+  </div>
+  <div>
+    <button>Add</button>
+  </div>
+</div>
