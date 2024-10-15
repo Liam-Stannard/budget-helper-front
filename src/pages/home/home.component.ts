@@ -1,10 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { BaseComponent } from '../base/base.component';
-import { ITransactionsResponse } from '../../services/api/interfaces/transaction.interface';
 import { ApiService } from '../../services/api/api.service';
-import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { TransactionListComponent } from '../transaction/transaction-list/transaction-list.component';
+import { BaseComponent } from '../../components/base/base.component';
+import { TransactionListComponent } from '../../components/transaction/transaction-list/transaction-list.component';
 
 @Component({
   selector: 'app-home',

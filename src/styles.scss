@@ -8,21 +8,48 @@
   flex: 1 1 auto;
 }
 
-.col-start {
+.flex-col-start {
   flex-direction: column;
   align-items: flex-start;
 }
 
-.flex-center-col {
-  display: flex;
+.flex-row-start {
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.flex-col-center {
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
 
+.flex-col-end {
+  flex-direction: column;
+  justify-content: end;
+}
+
+.flex-row-end {
+  flex-direction: row;
+  justify-content: end;
+}
+
+.gap-20 {
+  gap: 20px;
+}
+
 html,
 body {
   height: 100%;
+}
+
+.button-pad {
+  padding: 6px;
+  width: 5rem;
+}
+
+.app-wrapper {
+  margin: 2rem;
 }
 
 body {

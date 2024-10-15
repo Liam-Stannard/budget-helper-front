@@ -1,26 +1,37 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTableModule } from '@angular/material/table';
 import { ITransaction } from '../../../services/api/interfaces/transaction.interface';
-import { map, Observable } from 'rxjs';
-import { ApiService } from '../../../services/api/api.service';
+import { map, Observable, takeUntil } from 'rxjs';
 import { BaseNetworkingComponent } from '../../base/base-networking.component';
-import { Router } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
+import { TRANSACTION_LIST_TABLE_ROWS } from './interface/transaction-list.interface';
+import { MatMenuModule } from '@angular/material/menu';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'transaction-list',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatTableModule,
+    MatIconModule,
+    MatMenuModule,
+  ],
   templateUrl: './transaction-list.component.html',
   styleUrl: './transaction-list.component.scss',
 })
 export class TransactionListComponent
-  extends BaseNetworkingComponent<ITransaction[]>
+  extends BaseNetworkingComponent<ITransaction[], never>
   implements OnInit, OnDestroy
 {
-  constructor(protected apiService: ApiService,
-    protected router: Router
-  ) {
+  displayedColumns: string[] = TRANSACTION_LIST_TABLE_ROWS;
+
+  constructor() {
     super();
   }
 
@@ -33,34 +44,38 @@ export class TransactionListComponent
   }
 
   protected override getData(): Observable<ITransaction[]> {
-    return this.apiService.getExpense().pipe(
+    return this.apiService.getTransactions().pipe(
       map((response) => {
-        return response.expenses;
+        return response.transactions;
       })
     );
   }
 
-  protected edit(expense: ITransaction): void {
-this.router.navigate([])
+  protected add(): void {
+    this.navigate(['transaction/add']);
   }
 
-  protected delete(expense: ITransaction): void {
-    console.log('deleting', expense.id);
+  protected edit(transaction: ITransaction): void {
+    this.router.navigate([]);
+  }
+
+  protected delete(transaction: ITransaction): void {
+    console.log('deleting', transaction.id);
     if (
       confirm(
-        `Are you sure to delete transaction ${expense.title} - ${expense.account} - ${expense.amount}`
+        `Are you sure to delete transaction ${transaction.title} - ${transaction.account} - ${transaction.amount}`
       )
     ) {
-      this.apiService.deleteExpense(expense.id).subscribe({
+      this.apiService.deleteTransaction(transaction.id).subscribe({
         next: () => {
           alert(
-            `Deleted transaction ${expense.title} - ${expense.account} - ${expense.amount}`
+            `Deleted transaction ${transaction.title} - ${transaction.account} - ${transaction.amount}`
           );
           this.reloadData();
         },
         error: () => {
           alert(
-            `Delete transaction failed for ${expense.title} - ${expense.account} - ${expense.amount}`
+            `Delete transaction failed for ${transaction.title} - ${transaction.account} - ${transaction.amount}`
           );
           this.reloadData();
         },

@@ -6,4 +6,4 @@ import { environment } from './environments/environment';
 bootstrapApplication(AppComponent, appConfig).catch((err) =>
   console.error(err)
 );
-console.log(`shopping-list-started, production: ${environment.production}`);
+console.log(`budget-app-started, production: ${environment.production}`);

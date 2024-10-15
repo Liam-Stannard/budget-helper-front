@@ -1,15 +1,12 @@
-mat-card {
-  max-width: 50rem;
+.transaction-table {
+  padding-bottom: 1rem;
+}
+.mat-mdc-row .mat-mdc-cell {
+  border-bottom: 1px solid transparent;
+  border-top: 1px solid transparent;
+  cursor: pointer;
 }
 
-mat-card-content {
-  width: 90%;
-}
-
-mat-form-field {
-  width: 100%;
-}
-
-mat-card-actions {
-  width: 90%;
+.mat-mdc-row:hover .mat-mdc-cell {
+  border-color: currentColor;
 }

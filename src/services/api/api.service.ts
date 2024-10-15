@@ -1,10 +1,16 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { URL_EXPENSE } from './constants/api.service.constants';
+import {
+  URL_TRANSACTION_BASE,
+  URL_TRANSACTION_BY_ID,
+} from './constants/api.service.constants';
 import {
   ITransaction,
-  ITransactionsResponse,
+  IGetTransactionResponse,
+  IGetTransactionsResponse,
+  IPostPutTransactionResponse,
+  IBaseTransaction,
 } from './interfaces/transaction.interface';
 
 @Injectable({
@@ -13,19 +19,33 @@ import {
 export class ApiService {
   constructor(private httpClient: HttpClient) {}
 
-  getExpense(): Observable<ITransactionsResponse> {
-    return this.httpClient.get<ITransactionsResponse>(URL_EXPENSE);
+  getTransactions(): Observable<IGetTransactionsResponse> {
+    return this.httpClient.get<IGetTransactionsResponse>(URL_TRANSACTION_BASE);
   }
 
-  deleteExpense(id: number): Observable<any> {
-    return this.httpClient.delete<any>(`${URL_EXPENSE}/${id}`);
+  getTransaction(id: string): Observable<IGetTransactionResponse> {
+    return this.httpClient.get<IGetTransactionResponse>(
+      `${URL_TRANSACTION_BY_ID}${id}`
+    );
   }
 
-  putExpense(expense: ITransaction): Observable<any> {
-    return this.httpClient.put<any>(`${URL_EXPENSE}/${expense.id}`, expense);
+  deleteTransaction(id: number): Observable<any> {
+    return this.httpClient.delete<any>(`${URL_TRANSACTION_BY_ID}${id}`);
   }
 
-  postExpense(expense: ITransaction): Observable<any> {
-    return this.httpClient.post<any>(URL_EXPENSE, expense);
+  putTransaction(
+    id: string,
+    transaction: ITransaction
+  ): Observable<IPostPutTransactionResponse> {
+    return this.httpClient.put<any>(
+      `${URL_TRANSACTION_BY_ID}${id}`,
+      transaction
+    );
+  }
+
+  postTransaction(
+    transaction: IBaseTransaction
+  ): Observable<IPostPutTransactionResponse> {
+    return this.httpClient.post<any>(URL_TRANSACTION_BASE, transaction);
   }
 }

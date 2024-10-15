@@ -1,35 +1,42 @@
 <mat-toolbar color="primary">
-  <span class="flex-grow">
-    <button
-      mat-icon-button
-      [matMenuTriggerFor]="menu"
-      #menuTrigger="matMenuTrigger"
-      (click)="menuTrigger.openMenu()"
-      aria-label="menu"
-    >
-      <mat-icon>menu</mat-icon>
-    </button>
-    <mat-menu #menu="matMenu">
-      <span (mouseleave)="menuTrigger.closeMenu()">
-        <div *ngIf="!authService.isLoggedIn()">
-          <button mat-menu-item routerLink="/login">
-            <mat-icon>home</mat-icon>
-            <span>Login</span>
-          </button>
-        </div>
-        <div *ngIf="authService.isLoggedIn()">
-          <button mat-menu-item routerLink="/home">
-            <mat-icon>home</mat-icon>
-            <span>Home</span>
-          </button>
+  <mat-toolbar-row>
+    <span class="flex-grow">
+      <button
+        mat-icon-button
+        [matMenuTriggerFor]="menu"
+        #menuTrigger="matMenuTrigger"
+        (click)="menuTrigger.openMenu()"
+        aria-label="menu"
+      >
+        <mat-icon>menu</mat-icon>
+      </button>
+      <mat-menu #menu="matMenu">
+        <span (mouseleave)="menuTrigger.closeMenu()">
+          <div *ngIf="!authService.isLoggedIn()">
+            <button mat-menu-item routerLink="/login">
+              <mat-icon>home</mat-icon>
+              <span>Login</span>
+            </button>
+          </div>
+          <div *ngIf="authService.isLoggedIn()">
+            <button mat-menu-item routerLink="/home">
+              <mat-icon>home</mat-icon>
+              <span>Home</span>
+            </button>
 
-          <button mat-menu-item (click)="authService.logout()">
-            <mat-icon>exit_to_app</mat-icon>
-            <span>Logout</span>
-          </button>
-        </div>
-      </span>
-    </mat-menu>
-  </span>
-  <span class="flex-grow">My App</span>
+            <button mat-menu-item (click)="authService.logout()">
+              <mat-icon>exit_to_app</mat-icon>
+              <span>Logout</span>
+            </button>
+          </div>
+        </span>
+      </mat-menu>
+    </span>
+    <span class="flex-grow">My App</span>
+  </mat-toolbar-row>
+  <mat-toolbar-row>
+    <button mat-icon-button aria-label="back" (click)="back()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+  </mat-toolbar-row>
 </mat-toolbar>
