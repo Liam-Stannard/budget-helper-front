@@ -1,10 +1,11 @@
 import { FormControl } from '@angular/forms';
+import { Category } from '../../types/types';
 
 export interface ITransactionFormValues {
   title?: string;
   amount?: string;
   date?: string;
-  category?: string;
+  category?: Category;
   account?: string;
 }
 
@@ -12,7 +13,7 @@ export interface ITransactionForm {
   title: FormControl<string | undefined>;
   amount: FormControl<string | undefined>;
   date: FormControl<string | undefined>;
-  category: FormControl<string | undefined>;
+  category: FormControl<Category | undefined>;
   account: FormControl<string | undefined>;
 }
 

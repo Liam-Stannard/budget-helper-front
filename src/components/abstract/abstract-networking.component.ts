@@ -6,18 +6,18 @@ import {
   OnInit,
 } from '@angular/core';
 import { Observable } from 'rxjs';
-import { BaseComponent } from './base.component';
+import { AbstractComponent } from './abstract.component';
 import { ApiService } from '../../services/api/api.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 /**
  * @T - get request response
- * @Y - submit response
+ * @Y - submit request
  */
 @Component({
   template: '',
 })
-export abstract class BaseNetworkingComponent<T, Y>
-  extends BaseComponent
+export abstract class AbstractNetworkingComponent<T, Y>
+  extends AbstractComponent
   implements OnInit, OnDestroy
 {
   destroyRef = inject(DestroyRef);
@@ -39,7 +39,7 @@ export abstract class BaseNetworkingComponent<T, Y>
     super.ngOnInit();
 
     if (this.shouldGetData) {
-      this.loadData();
+      this.getData();
     }
   }
 
@@ -47,25 +47,21 @@ export abstract class BaseNetworkingComponent<T, Y>
     super.ngOnDestroy();
   }
 
-  protected loadData(): void {
-    this.getApi$ = this.getData();
+  protected getData(): void {
+    this.getApi$ = this.getObservableForGet();
 
     this.getApi$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.getResponse = response;
 
-        if (this.furtherDataActions) {
-          this.furtherDataActions();
+        if (this.executeGetDataEffects) {
+          this.executeGetDataEffects();
         }
         console.log(this.getResponse);
 
         this.loading = false;
       },
     });
-  }
-
-  protected reloadData(): void {
-    this.loadData();
   }
 
   protected submit(): void {
@@ -91,11 +87,11 @@ export abstract class BaseNetworkingComponent<T, Y>
       });
   }
 
-  protected furtherDataActions?(): void;
+  protected executeGetDataEffects?(): void;
 
   protected submitData?(): Observable<Y>;
 
-  protected abstract getData(): Observable<T>;
+  protected abstract getObservableForGet(): Observable<T>;
 
   protected postSubmitActions?(): void;
 }

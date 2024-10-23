@@ -1,4 +1,10 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  inject,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { AuthService } from '../../services/auth/auth.service';
 import {
   FormBuilder,
@@ -13,6 +19,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-login',
@@ -29,6 +36,8 @@ import { MatInputModule } from '@angular/material/input';
 })
 export class LoginComponent implements OnInit, OnDestroy {
   protected form!: FormGroup<ILoginForm>;
+
+  destroyRef = inject(DestroyRef);
 
   constructor(
     protected authService: AuthService,
@@ -49,7 +58,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     });
   }
 
-  protected populateRequest(): IAuthenticateRequest {
+  protected createRequest(): IAuthenticateRequest {
     return {
       username: this.form.controls.username.getRawValue(),
       password: this.form.controls.password.getRawValue(),
@@ -58,14 +67,17 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   protected login(): void {
     if (this.form.valid) {
-      this.authService.authenticate(this.populateRequest()).subscribe({
-        next: () => {
-          this.router.navigate(['home']);
-        },
-        error: (err) => {
-          console.error('Login Failed', err);
-        },
-      });
+      this.authService
+        .authenticate(this.createRequest())
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.router.navigate(['home']);
+          },
+          error: (err) => {
+            console.error('Login Failed', err);
+          },
+        });
     }
   }
 }

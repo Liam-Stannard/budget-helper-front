@@ -1,6 +1,6 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { BaseNetworkingComponent } from '../../base/base-networking.component';
+import { AbstractNetworkingComponent } from '../../abstract/abstract-networking.component';
 import {
   IGetTransactionResponse,
   IPutTransactionRequest,
@@ -22,7 +22,6 @@ import {
   ITransactionForm,
   ITransactionFormValues,
 } from './interface/transaction-card.interface';
-import { BaseInsertEditComponent } from '../../base/base-add-edit.component';
 import {
   dateValidator,
   freeTextValidator,
@@ -31,6 +30,8 @@ import {
 import { CATEGORY_OPTIONS } from '../constants/transcations.constants';
 import { SelectOption } from '../../../interface/interfaces';
 import { MatSelect, MatSelectModule } from '@angular/material/select';
+import { Category } from '../types/types';
+import { APP_CONSTANTS, Mode } from '../../../app/app.constants';
 
 @Component({
   selector: 'transaction-card.',
@@ -47,30 +48,40 @@ import { MatSelect, MatSelectModule } from '@angular/material/select';
   styleUrl: './transaction-card.component.scss',
 })
 export class TransactionCardComponent
-  extends BaseInsertEditComponent<
+  extends AbstractNetworkingComponent<
     IGetTransactionResponse,
-    IPutTransactionRequest,
-    ITransactionForm,
-    ITransactionFormValues
+    IPutTransactionRequest
   >
   implements OnInit, OnDestroy
 {
-  protected categoryOptions: SelectOption<string, string>[] = CATEGORY_OPTIONS;
+  protected categoryOptions: SelectOption<Category, Category>[] =
+    CATEGORY_OPTIONS;
+
+  protected form!: FormGroup<ITransactionForm>;
+  protected formData!: ITransactionFormValues;
+  protected mode: Mode = APP_CONSTANTS.MODE_EDIT;
 
   private id: string | undefined;
 
-  constructor() {
+  constructor(private fb: FormBuilder) {
     super();
-    if (this.isEdit) {
+  }
+
+  override ngOnInit(): void {
+    this.mode = this.determineMode();
+
+    if (this.mode === APP_CONSTANTS.MODE_EDIT) {
       this.id = this.route.snapshot.paramMap.get('ID') ?? undefined;
+      this.shouldGetData = true;
 
       if (!this.id) {
         throw Error('Transaction should have an ID');
       }
+    } else {
+      this.shouldGetData = false;
     }
-  }
 
-  override ngOnInit(): void {
+    this.form = this.formInit();
     super.ngOnInit();
   }
 
@@ -97,7 +108,7 @@ export class TransactionCardComponent
     });
   }
 
-  protected override getData(): Observable<IGetTransactionResponse> {
+  protected override getObservableForGet(): Observable<IGetTransactionResponse> {
     if (!this.id) {
       throw Error('Transaction should have an ID');
     }
@@ -105,28 +116,29 @@ export class TransactionCardComponent
     return this.apiService.getTransaction(this.id);
   }
 
-  protected override furtherDataActions(): void {
-    super.furtherDataActions();
+  protected override executeGetDataEffects(): void {
+    this.formData = this.mapGetResponseToFormData();
     this.form.patchValue(this.formData);
   }
 
   protected override submitData(): Observable<IPostPutTransactionResponse> {
-    if (this.isEdit) {
+    if (this.mode === APP_CONSTANTS.MODE_EDIT) {
       if (!this.id) {
         throw Error('Transaction should have an ID');
       }
-      return this.apiService.putTransaction(
-        this.id,
-        this.mapFormDataToITransactionForPut()
-      );
+      return this.apiService.putTransaction(this.id, this.createPutRequest());
     } else {
-      return this.apiService.postTransaction(
-        this.mapFormDataToITransactionForPost()
-      );
+      return this.apiService.postTransaction(this.createPostReqest());
     }
   }
 
-  protected override mapGetResponseToFormData(): ITransactionFormValues {
+  protected determineMode(): Mode {
+    return this.router.url.includes(APP_CONSTANTS.MODE_EDIT)
+      ? APP_CONSTANTS.MODE_EDIT
+      : APP_CONSTANTS.MODE_ADD;
+  }
+
+  protected mapGetResponseToFormData(): ITransactionFormValues {
     return {
       title: this.getResponse.transaction.title,
       amount: this.getResponse.transaction.amount,
@@ -136,7 +148,7 @@ export class TransactionCardComponent
     };
   }
 
-  protected mapFormDataToITransactionForPut(): ITransaction {
+  protected createPutRequest(): ITransaction {
     const formValues = this.form.getRawValue();
     if (
       !formValues.title ||
@@ -162,7 +174,7 @@ export class TransactionCardComponent
     };
   }
 
-  protected mapFormDataToITransactionForPost(): IBaseTransaction {
+  protected createPostReqest(): IBaseTransaction {
     const formValues = this.form.getRawValue();
     if (
       !formValues.title ||
@@ -181,5 +193,12 @@ export class TransactionCardComponent
       category: formValues.category,
       account: formValues.account,
     };
+  }
+
+  protected displayOptionCompare(
+    first: SelectOption<Category, Category>,
+    second: SelectOption<Category, Category>
+  ): boolean {
+    return first && second ? first.value === second.value : first === second;
   }
 }

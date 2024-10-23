@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ApiService } from '../../services/api/api.service';
 import { CommonModule } from '@angular/common';
-import { BaseComponent } from '../../components/base/base.component';
+import { AbstractComponent } from '../../components/abstract/abstract.component';
 import { TransactionListComponent } from '../../components/transaction/transaction-list/transaction-list.component';
 
 @Component({
@@ -11,7 +11,10 @@ import { TransactionListComponent } from '../../components/transaction/transacti
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
-export class HomeComponent extends BaseComponent implements OnInit, OnDestroy {
+export class HomeComponent
+  extends AbstractComponent
+  implements OnInit, OnDestroy
+{
   constructor(protected apiService: ApiService) {
     super();
   }

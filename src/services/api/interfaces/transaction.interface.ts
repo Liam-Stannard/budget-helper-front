@@ -1,29 +1,32 @@
-export interface IBaseTransaction {
+import { Category } from '../../../components/transaction/types/types';
+
+export type IBaseTransaction = {
   title: string;
   amount: string;
   date: string;
-  category: string;
+  category: Category;
   account: string;
-}
-export interface ITransaction extends IBaseTransaction {
+};
+
+export type ITransaction = IBaseTransaction & {
   id: number;
-}
+};
 
-export interface IGetTransactionsResponse {
+export type IGetTransactionsResponse = {
   transactions: ITransaction[];
-}
-export interface IGetTransactionResponse {
+};
+export type IGetTransactionResponse = {
   transaction: ITransaction;
-}
+};
 
-export interface IPutTransactionRequest {
+export type IPutTransactionRequest = {
   transaction: ITransaction;
-}
+};
 
-export interface IPostTransactionRequest {
+export type IPostTransactionRequest = {
   transaction: IBaseTransaction;
-}
+};
 
-export interface IPostPutTransactionResponse {
+export type IPostPutTransactionResponse = {
   transaction: ITransaction;
-}
+};

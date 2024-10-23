@@ -1,8 +1,21 @@
 import { SelectOption } from '../../../interface/interfaces';
+import { Category } from '../types/types';
 
-export const CATEGORY_OPTIONS: SelectOption<string, string>[] = [
+export const CATEGORY_OPTIONS: SelectOption<Category, Category>[] = [
   {
-    view: 'FOOD',
-    value: 'FOOD',
+    view: 'Food',
+    value: 'Food',
+  },
+  {
+    view: 'Bill',
+    value: 'Bill',
+  },
+  {
+    view: 'Subscription',
+    value: 'Subscription',
+  },
+  {
+    view: 'Clothing',
+    value: 'Clothing',
   },
 ];

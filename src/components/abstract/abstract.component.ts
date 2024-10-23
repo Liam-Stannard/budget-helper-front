@@ -4,7 +4,7 @@ import { Location } from '@angular/common';
 @Component({
   template: '',
 })
-export abstract class BaseComponent implements OnInit, OnDestroy {
+export abstract class AbstractComponent implements OnInit, OnDestroy {
   protected router: Router;
   protected route: ActivatedRoute;
   protected location: Location;

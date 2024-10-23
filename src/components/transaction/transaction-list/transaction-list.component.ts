@@ -4,12 +4,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { ITransaction } from '../../../services/api/interfaces/transaction.interface';
 import { map, Observable, takeUntil } from 'rxjs';
-import { BaseNetworkingComponent } from '../../base/base-networking.component';
+import { AbstractNetworkingComponent } from '../../abstract/abstract-networking.component';
 import { MatIconModule } from '@angular/material/icon';
 import { TRANSACTION_LIST_TABLE_ROWS } from './interface/transaction-list.interface';
 import { MatMenuModule } from '@angular/material/menu';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { APP_CONSTANTS } from '../../../app/app.constants';
 
 @Component({
   selector: 'transaction-list',
@@ -26,7 +27,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './transaction-list.component.scss',
 })
 export class TransactionListComponent
-  extends BaseNetworkingComponent<ITransaction[], never>
+  extends AbstractNetworkingComponent<ITransaction[], never>
   implements OnInit, OnDestroy
 {
   displayedColumns: string[] = TRANSACTION_LIST_TABLE_ROWS;
@@ -43,7 +44,7 @@ export class TransactionListComponent
     super.ngOnDestroy();
   }
 
-  protected override getData(): Observable<ITransaction[]> {
+  protected override getObservableForGet(): Observable<ITransaction[]> {
     return this.apiService.getTransactions().pipe(
       map((response) => {
         return response.transactions;
@@ -52,11 +53,15 @@ export class TransactionListComponent
   }
 
   protected add(): void {
-    this.navigate(['transaction/add']);
+    this.navigate(['transaction', APP_CONSTANTS.MODE_ADD]);
   }
 
   protected edit(transaction: ITransaction): void {
-    this.router.navigate([]);
+    this.router.navigate([
+      'transaction',
+      APP_CONSTANTS.MODE_EDIT,
+      transaction.id,
+    ]);
   }
 
   protected delete(transaction: ITransaction): void {
@@ -71,13 +76,13 @@ export class TransactionListComponent
           alert(
             `Deleted transaction ${transaction.title} - ${transaction.account} - ${transaction.amount}`
           );
-          this.reloadData();
+          this.getData();
         },
         error: () => {
           alert(
             `Delete transaction failed for ${transaction.title} - ${transaction.account} - ${transaction.amount}`
           );
-          this.reloadData();
+          this.getData();
         },
       });
     }

@@ -45,7 +45,10 @@
       <div class="flex flex-col-center gap-20 flex-grow">
         <mat-form-field>
           <mat-label>Category</mat-label>
-          <mat-select [formControl]="form.controls.category">
+          <mat-select
+            [formControl]="form.controls.category"
+            [compareWith]="displayOptionCompare"
+          >
             @for (category of categoryOptions; track category) {
             <mat-option [value]="category.value">{{
               category.view

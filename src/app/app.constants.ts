@@ -1,4 +1,4 @@
-type Mode = 'edit' | 'add' | 'view';
+export type Mode = 'edit' | 'add' | 'view';
 
 export class APP_CONSTANTS {
   static readonly MODE_EDIT: Mode = 'edit';

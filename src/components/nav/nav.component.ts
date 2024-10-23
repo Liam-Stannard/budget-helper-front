@@ -6,7 +6,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
-import { BaseComponent } from '../base/base.component';
+import { AbstractComponent } from '../abstract/abstract.component';
 
 @Component({
   selector: 'app-nav',
@@ -22,7 +22,10 @@ import { BaseComponent } from '../base/base.component';
   templateUrl: './nav.component.html',
   styleUrl: './nav.component.scss',
 })
-export class NavComponent extends BaseComponent implements OnInit, OnDestroy {
+export class NavComponent
+  extends AbstractComponent
+  implements OnInit, OnDestroy
+{
   constructor(protected authService: AuthService) {
     super();
   }
