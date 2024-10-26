@@ -10,5 +10,5 @@ import { NavComponent } from '../components/nav/nav.component';
   imports: [RouterOutlet, NavComponent],
 })
 export class AppComponent {
-  title = 'shopping-list';
+  title = 'budget-helper';
 }

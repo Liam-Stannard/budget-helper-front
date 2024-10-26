@@ -4,10 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { AuthService } from '../../services/auth/auth.service';
 import { of } from 'rxjs';
-
-class MockAuthService {
-  authenticate = of(true);
-}
+import { MockAuthService } from '../../test/mockServices';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;

@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "shopping-list": {
+    "budget-helper": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/shopping-list",
+            "outputPath": "dist/budget-helper",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": ["zone.js"],
@@ -69,10 +69,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "shopping-list:build:production"
+              "buildTarget": "budget-helper:build:production"
             },
             "development": {
-              "buildTarget": "shopping-list:build:development"
+              "buildTarget": "budget-helper:build:development"
             }
           },
           "defaultConfiguration": "development"
