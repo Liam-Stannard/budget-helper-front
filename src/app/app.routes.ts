@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
-import { LandingComponent } from '../pages/landing/landing.component';
-import { authGuard } from '../services/auth/guard/auth.guard';
-import { HomeComponent } from '../pages/home/home.component';
-import { AddEditTransactionComponent } from '../pages/transaction/add-edit/add-edit-transaction/add-edit-transaction.component';
+import { LandingComponent } from '../page/landing/landing.component';
+import { authGuard } from '../service/auth/guard/auth.guard';
+import { HomeComponent } from '../page/home/home.component';
+import { AddEditTransactionComponent } from '../page/transaction/add-edit/add-edit-transaction/add-edit-transaction.component';
 
 export const routes: Routes = [
   {
