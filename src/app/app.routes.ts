@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { LandingComponent } from '../page/landing/landing.component';
 import { authGuard } from '../service/auth/guard/auth.guard';
 import { HomeComponent } from '../page/home/home.component';
-import { AddEditTransactionComponent } from '../page/transaction/add-edit/add-edit-transaction/add-edit-transaction.component';
+import { TransactionDetailsComponent } from '../page/transaction/transaction-details/transaction-details.component';
 
 export const routes: Routes = [
   {
@@ -18,13 +18,13 @@ export const routes: Routes = [
   },
   //TODO - add canDeactivate
   {
-    component: AddEditTransactionComponent,
+    component: TransactionDetailsComponent,
     path: 'transaction/:MODE/:ID',
     title: 'Add Transaction',
     canActivate: [authGuard()],
   },
   {
-    component: AddEditTransactionComponent,
+    component: TransactionDetailsComponent,
     path: 'transaction/:MODE',
     title: 'Add Transaction',
     canActivate: [authGuard()],
