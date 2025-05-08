@@ -9,8 +9,8 @@ export type ITransaction = {
   account: string;
 };
 
-export type IGetTransactionsResponse = {
-  transactions: ITransaction[];
+export type IGetTransactionListResponse = {
+  transactionList: ITransaction[];
 };
 export type IGetTransactionResponse = {
   transaction: ITransaction;

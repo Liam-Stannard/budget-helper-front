@@ -6,7 +6,7 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { HttpClient, provideHttpClient } from '@angular/common/http';
-import { IGetTransactionsResponse } from './interfaces/transaction.interface';
+import { IGetTransactionListResponse } from './interfaces/transaction.interface';
 
 describe('ApiService', () => {
   let service: TransactionApiService;

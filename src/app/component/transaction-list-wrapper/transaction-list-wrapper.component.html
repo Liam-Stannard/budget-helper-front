@@ -1,0 +1,16 @@
+<div class="transaction-list-wrapper">
+  <transaction-list
+    [tableData]="data"
+    (actionTriggered)="triggerAction($event)"
+  />
+
+  <div class="flex flex-row-end">
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="navigate(['transaction/add'])"
+    >
+      Add
+    </button>
+  </div>
+</div>

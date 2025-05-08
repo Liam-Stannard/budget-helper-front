@@ -1,12 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractComponent } from '../../component/abstract/abstract.component';
-import { TransactionListComponent } from '../../component/transaction/transaction-list/transaction-list.component';
+import { TransactionListWrapperComponent } from '../../component/transaction-list-wrapper/transaction-list-wrapper.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, TransactionListComponent],
+  imports: [CommonModule, TransactionListWrapperComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })

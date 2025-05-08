@@ -2,7 +2,7 @@ import { Signal, signal, WritableSignal } from '@angular/core';
 import { of } from 'rxjs';
 import {
   IGetTransactionResponse,
-  IGetTransactionsResponse,
+  IGetTransactionListResponse,
   ITransaction,
 } from '../app/component/transaction/api/interfaces/transaction.interface';
 import {
@@ -20,8 +20,8 @@ const transaction1: ITransaction = {
   date: '2020-01-01',
 };
 
-const getTransactionsResponse: IGetTransactionsResponse = {
-  transactions: [transaction1],
+const getTransactionsResponse: IGetTransactionListResponse = {
+  transactionList: [transaction1],
 };
 
 const getTransactionResponse: IGetTransactionResponse = {
@@ -34,12 +34,12 @@ export class MockAuthService {
 }
 
 export class MockApiService {
-  transactions: Signal<IGetTransactionsResponse> =
-    signal<IGetTransactionsResponse>(getTransactionsResponse);
+  transactions: Signal<IGetTransactionListResponse> =
+    signal<IGetTransactionListResponse>(getTransactionsResponse);
 
   transactionsError: Signal<string | undefined> = signal(undefined);
 
-  transactionsResult = signal<HttpResult<IGetTransactionsResponse>>({
+  transactionsResult = signal<HttpResult<IGetTransactionListResponse>>({
     data: getTransactionsResponse,
     error: undefined,
   });

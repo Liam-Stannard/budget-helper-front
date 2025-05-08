@@ -43,7 +43,7 @@ export abstract class AbstractNetworkingComponent<T, Y>
   }
 
   protected getData(): void {
-    this.getApi$ = this.getObservableForGet();
+    this.getApi$ = this.getDataObservable();
 
     this.getApi$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
@@ -60,11 +60,11 @@ export abstract class AbstractNetworkingComponent<T, Y>
   }
 
   protected submit(): void {
-    if (!this.submitData) {
+    if (!this.submitDataObservable) {
       throw Error('submitData is not defined');
     }
 
-    this.submitData()
+    this.submitDataObservable()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
@@ -84,9 +84,9 @@ export abstract class AbstractNetworkingComponent<T, Y>
 
   protected executeGetDataEffects?(): void;
 
-  protected submitData?(): Observable<Y>;
+  protected submitDataObservable?(): Observable<Y>;
 
-  protected abstract getObservableForGet(): Observable<T>;
+  protected abstract getDataObservable(): Observable<T>;
 
   protected postSubmitActions?(): void;
 }

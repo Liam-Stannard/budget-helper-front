@@ -111,7 +111,7 @@ export class TransactionCardComponent
     });
   }
 
-  protected override getObservableForGet(): Observable<IGetTransactionResponse> {
+  protected getDataObservable(): Observable<IGetTransactionResponse> {
     if (!this.id) {
       throw Error('Transaction should have an ID');
     }
@@ -124,7 +124,7 @@ export class TransactionCardComponent
     this.form.patchValue(this.formData);
   }
 
-  protected override submitData(): Observable<IPostPutTransactionResponse> {
+  protected override submitDataObservable(): Observable<IPostPutTransactionResponse> {
     if (this.mode === APP_CONSTANTS.MODE_EDIT) {
       if (!this.id) {
         throw Error('Transaction should have an ID');

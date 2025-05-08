@@ -8,7 +8,7 @@ import {
 import {
   ITransaction,
   IGetTransactionResponse,
-  IGetTransactionsResponse,
+  IGetTransactionListResponse,
   IPostPutTransactionResponse,
 } from './interfaces/transaction.interface';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -24,41 +24,11 @@ export interface HttpResult<T> {
 export class TransactionApiService {
   constructor(private httpClient: HttpClient) {}
 
-  // SIGNALS - START
-
-  private EMPTY_TRANSACTIONS: IGetTransactionsResponse = {
-    transactions: [],
-  };
-
-  private transactionsResult = toSignal(this.getTransactions(), {
-    initialValue: { data: this.EMPTY_TRANSACTIONS, error: undefined },
-  });
-
-  transactions = computed(() => this.transactionsResult().data.transactions);
-  transactionsError = computed(() => this.transactionsResult().error);
-
-  private getTransactions(): Observable<HttpResult<IGetTransactionsResponse>> {
-    return this.httpClient
-      .get<IGetTransactionsResponse>(URL_TRANSACTION_BASE + '12')
-      .pipe(
-        map((response) => this.createHttpResult(response)),
-        shareReplay(1),
-        catchError((error: HttpErrorResponse) =>
-          of(this.createHttpResult(this.EMPTY_TRANSACTIONS, `${error.message}`))
-        )
-      );
+  getTransactionList(): Observable<IGetTransactionListResponse> {
+    return this.httpClient.get<IGetTransactionListResponse>(
+      `${URL_TRANSACTION_BASE}`
+    );
   }
-
-  private createHttpResult<T>(data: T, error?: string): HttpResult<T> {
-    return {
-      data,
-      error,
-    };
-  }
-
-  //SIGNALS - END
-
-  //OLD
 
   getTransaction(id: string): Observable<IGetTransactionResponse> {
     return this.httpClient.get<IGetTransactionResponse>(

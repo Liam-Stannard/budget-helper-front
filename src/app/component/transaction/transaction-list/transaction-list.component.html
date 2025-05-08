@@ -1,77 +1,76 @@
-<div class="transaction-list-wrapper">
-  <div *ngIf="this.error()">
-    <span>{{ this.error() }}</span>
-  </div>
-  <div class="transaction-table">
-    <table mat-table [dataSource]="this.data()">
-      <ng-container matColumnDef="col-title">
-        <th mat-header-cell *matHeaderCellDef>Title</th>
-        <td mat-cell *matCellDef="let element">{{ element.title }}</td>
-      </ng-container>
+<div class="transaction-table">
+  <table mat-table [dataSource]="this.tableData">
+    <ng-container matColumnDef="col-title">
+      <th mat-header-cell *matHeaderCellDef>Title</th>
+      <td mat-cell *matCellDef="let element">{{ element.title }}</td>
+    </ng-container>
 
-      <ng-container matColumnDef="col-account">
-        <th mat-header-cell *matHeaderCellDef>Account</th>
-        <td mat-cell *matCellDef="let element">{{ element.account }}</td>
-      </ng-container>
+    <ng-container matColumnDef="col-account">
+      <th mat-header-cell *matHeaderCellDef>Account</th>
+      <td mat-cell *matCellDef="let element">{{ element.account }}</td>
+    </ng-container>
 
-      <ng-container matColumnDef="col-amount">
-        <th mat-header-cell *matHeaderCellDef>Amount</th>
-        <td mat-cell *matCellDef="let element">
-          {{ element.amount | number : "0.2-2" }}
-        </td>
-      </ng-container>
+    <ng-container matColumnDef="col-amount">
+      <th mat-header-cell *matHeaderCellDef>Amount</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.amount | number : "0.2-2" }}
+      </td>
+    </ng-container>
 
-      <ng-container matColumnDef="col-date">
-        <th mat-header-cell *matHeaderCellDef>Date</th>
-        <td mat-cell *matCellDef="let element">
-          {{ element.date | date : "longDate" }}
-        </td>
-      </ng-container>
+    <ng-container matColumnDef="col-date">
+      <th mat-header-cell *matHeaderCellDef>Date</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.date | date : "longDate" }}
+      </td>
+    </ng-container>
 
-      <ng-container matColumnDef="col-category">
-        <th mat-header-cell *matHeaderCellDef>Category</th>
-        <td mat-cell *matCellDef="let element">{{ element.category }}</td>
-      </ng-container>
+    <ng-container matColumnDef="col-category">
+      <th mat-header-cell *matHeaderCellDef>Category</th>
+      <td mat-cell *matCellDef="let element">{{ element.category }}</td>
+    </ng-container>
 
-      <ng-container matColumnDef="col-actions" stickyEnd>
-        <th mat-header-cell *matHeaderCellDef aria-label="row actions">
-          &nbsp;
-        </th>
-        <td mat-cell *matCellDef="let element">
-          <button
-            mat-icon-button
-            [matMenuTriggerFor]="menu"
-            #menuTrigger="matMenuTrigger"
-            (click)="menuTrigger.openMenu()"
-            aria-label=""
-          >
-            <mat-icon>more_vert</mat-icon>
-          </button>
-          <mat-menu #menu="matMenu">
-            <span (mouseleave)="menuTrigger.closeMenu()">
-              <button
-                mat-menu-item
-                (click)="navigate(['transaction', 'edit', element.id])"
-              >
-                Edit
-              </button>
-              <button mat-menu-item (click)="delete(element)">Delete</button>
-            </span>
-          </mat-menu>
-        </td>
-      </ng-container>
+    <ng-container matColumnDef="col-actions" stickyEnd>
+      <th mat-header-cell *matHeaderCellDef aria-label="row actions">&nbsp;</th>
+      <td mat-cell *matCellDef="let element">
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="menu"
+          #menuTrigger="matMenuTrigger"
+          (click)="menuTrigger.openMenu()"
+          aria-label=""
+        >
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu">
+          <span (mouseleave)="menuTrigger.closeMenu()">
+            <button
+              mat-menu-item
+              (click)="
+                onClickEmitAction({
+                  action: 'ACTION_EDIT',
+                  item: element
+                })
+              "
+            >
+              Edit
+            </button>
+            <button
+              mat-menu-item
+              (click)="
+                onClickEmitAction({
+                  action: 'ACTION_DELETE',
+                  item: element
+                })
+              "
+            >
+              Delete
+            </button>
+          </span>
+        </mat-menu>
+      </td>
+    </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    </table>
-  </div>
-  <div class="flex flex-row-end">
-    <button
-      mat-raised-button
-      color="primary"
-      (click)="navigate(['transaction/add'])"
-    >
-      Add
-    </button>
-  </div>
+    <tr mat-header-row *matHeaderRowDef="columns"></tr>
+    <tr mat-row *matRowDef="let row; columns: columns"></tr>
+  </table>
 </div>

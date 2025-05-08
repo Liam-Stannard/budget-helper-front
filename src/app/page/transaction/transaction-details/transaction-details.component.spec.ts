@@ -5,8 +5,8 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { AuthService } from '../../../service/auth/auth.service';
-import { MockAuthService, MockApiService } from '../../../test/mockService';
-import { TransactionApiService } from '../../../app/component/transaction/api/transaction-api.service';
+import { MockAuthService, MockApiService } from '../../../../test/mockService';
+import { TransactionApiService } from '../../../../app/component/transaction/api/transaction-api.service';
 
 describe('TransactionDetailsComponent', () => {
   let component: TransactionDetailsComponent;

@@ -1,4 +1,4 @@
-export const TRANSACTION_LIST_TABLE_ROWS = [
+export const TRANSACTION_LIST_TABLE_COLUMNS = [
   'col-title',
   'col-account',
   'col-amount',
@@ -6,3 +6,7 @@ export const TRANSACTION_LIST_TABLE_ROWS = [
   'col-category',
   'col-actions',
 ];
+export interface IMatMenuButtonActionEvent<T> {
+  action: string;
+  item: T;
+}

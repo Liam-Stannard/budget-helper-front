@@ -12,7 +12,7 @@ import {
 } from '../api/transaction-api.service';
 import { Signal, signal } from '@angular/core';
 import {
-  IGetTransactionsResponse,
+  IGetTransactionListResponse,
   ITransaction,
 } from '../api/interfaces/transaction.interface';
 import { AbstractComponent } from '../../abstract/abstract.component';
@@ -26,15 +26,15 @@ const transaction1: ITransaction = {
   date: '2020-01-01',
 };
 
-const getTransactionsResponse: IGetTransactionsResponse = {
-  transactions: [transaction1],
+const getTransactionsResponse: IGetTransactionListResponse = {
+  transactionList: [transaction1],
 };
 
 const transactions = signal<ITransaction[]>(
-  getTransactionsResponse.transactions
+  getTransactionsResponse.transactionList
 );
 const transactionsError = signal(undefined);
-const transactionsResult = signal<HttpResult<IGetTransactionsResponse>>({
+const transactionsResult = signal<HttpResult<IGetTransactionListResponse>>({
   data: getTransactionsResponse,
   error: undefined,
 });
@@ -81,89 +81,4 @@ describe('TransactionListComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
-  describe('ngOnInit', () => {
-    beforeEach(() => {
-      jest.spyOn(AbstractComponent.prototype, 'ngOnInit').mockImplementation();
-    });
-
-    it('should call super.ngOnInit', () => {
-      component.ngOnInit();
-
-      expect(AbstractComponent.prototype.ngOnInit).toHaveBeenCalledTimes(1);
-    });
-
-    it('should set the data signal', () => {
-      component.ngOnInit();
-
-      expect(component['data']).toBe(transactions);
-
-      expect(component['data']()).toStrictEqual(
-        getTransactionsResponse.transactions
-      );
-    });
-
-    it('should set the error signal', () => {
-      component.ngOnInit();
-
-      expect(component['error']).toBe(transactionsError);
-    });
-
-    it('should set loading to false', () => {
-      component.ngOnInit();
-
-      expect(component['loading']).toBe(false);
-    });
-  });
-
-  describe('ngOnDestroy', () => {
-    beforeEach(() => {
-      jest
-        .spyOn(AbstractComponent.prototype, 'ngOnDestroy')
-        .mockImplementation();
-    });
-
-    it('should call super.ngOnDestroy', () => {
-      component.ngOnDestroy();
-
-      expect(AbstractComponent.prototype.ngOnDestroy).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('add', () => {
-    beforeEach(() => {
-      jest
-        .spyOn(AbstractComponent.prototype as any, 'navigate')
-        .mockImplementation();
-    });
-
-    it('should call navigate to the correct route', () => {
-      component['add']();
-
-      expect(component['navigate']).toHaveBeenCalledWith([
-        'transaction',
-        'add',
-      ]);
-    });
-  });
-
-  describe('edit', () => {
-    beforeEach(() => {
-      jest
-        .spyOn(AbstractComponent.prototype as any, 'navigate')
-        .mockImplementation();
-    });
-
-    it('should call navigate to the correct route', () => {
-      component['edit'](transaction1);
-
-      expect(component['navigate']).toHaveBeenCalledWith([
-        'transaction',
-        'edit',
-        '1',
-      ]);
-    });
-  });
-
-  describe('delete', () => {});
 });
