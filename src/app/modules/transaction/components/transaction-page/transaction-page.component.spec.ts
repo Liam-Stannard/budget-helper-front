@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HomeComponent } from './home.component';
+import { TransactionPageComponent } from './transaction-page.component';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter } from '@angular/router';
@@ -7,13 +7,13 @@ import { provideHttpClient } from '@angular/common/http';
 import { MockAuthService } from '../../../../../test/mockService';
 import { AuthService } from '../../../../core/auth/auth.service';
 
-describe('HomeComponent', () => {
-  let component: HomeComponent;
-  let fixture: ComponentFixture<HomeComponent>;
+describe('TransactionPageComponent', () => {
+  let component: TransactionPageComponent;
+  let fixture: ComponentFixture<TransactionPageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HomeComponent],
+      imports: [TransactionPageComponent],
       providers: [
         provideAnimationsAsync(),
         provideHttpClientTesting(),
@@ -26,7 +26,7 @@ describe('HomeComponent', () => {
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(HomeComponent);
+    fixture = TestBed.createComponent(TransactionPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

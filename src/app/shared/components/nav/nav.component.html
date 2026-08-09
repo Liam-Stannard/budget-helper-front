@@ -12,6 +12,14 @@
       <mat-icon>home</mat-icon>
       Home
     </a>
+    <a mat-button routerLink="/transactions">
+      <mat-icon>receipt_long</mat-icon>
+      Transactions
+    </a>
+    <a mat-button routerLink="/accounts">
+      <mat-icon>account_balance</mat-icon>
+      Accounts
+    </a>
     <button mat-button (click)="authService.logout()">
       <mat-icon>exit_to_app</mat-icon>
       Logout

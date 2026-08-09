@@ -1,0 +1,21 @@
+<div class="account-list-wrapper">
+  @if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+  }
+
+  <account-list
+    [tableData]="data()"
+    (actionTriggered)="triggerAction($event)"
+  />
+
+  <button
+    mat-fab
+    extended
+    color="primary"
+    class="add-fab"
+    (click)="navigate(['account/add'])"
+  >
+    <mat-icon>add</mat-icon>
+    Add
+  </button>
+</div>

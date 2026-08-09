@@ -4,13 +4,13 @@ import { AbstractComponent } from '../../../../core/component/abstract/abstract.
 import { TransactionListWrapperComponent } from '../transaction-list-wrapper/transaction-list-wrapper.component';
 
 @Component({
-  selector: 'app-home',
+  selector: 'app-transaction-page',
   standalone: true,
   imports: [CommonModule, TransactionListWrapperComponent],
-  templateUrl: './home.component.html',
-  styleUrl: './home.component.scss',
+  templateUrl: './transaction-page.component.html',
+  styleUrl: './transaction-page.component.scss',
 })
-export class HomeComponent
+export class TransactionPageComponent
   extends AbstractComponent
   implements OnInit, OnDestroy
 {

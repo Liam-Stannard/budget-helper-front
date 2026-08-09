@@ -29,10 +29,17 @@ export class NavComponent
     { initialValue: this.router.url }
   );
 
-  protected showBackButton = computed(
-    () =>
-      !this.currentUrl().startsWith('/home') &&
-      !this.currentUrl().startsWith('/login')
+  private static readonly TOP_LEVEL_ROUTES = [
+    '/home',
+    '/login',
+    '/transactions',
+    '/accounts',
+  ];
+
+  protected showBackButton = computed(() =>
+    NavComponent.TOP_LEVEL_ROUTES.every(
+      (route) => !this.currentUrl().startsWith(route)
+    )
   );
 
   constructor(protected authService: AuthService) {

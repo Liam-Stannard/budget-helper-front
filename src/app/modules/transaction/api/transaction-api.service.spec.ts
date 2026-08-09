@@ -14,7 +14,7 @@ describe('ApiService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [],
-      providers: [provideHttpClientTesting(), provideHttpClient()],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     });
     service = TestBed.inject(TransactionApiService);
   });

@@ -6,6 +6,17 @@ import {
   IPostPutTransactionResponse,
   ITransaction,
 } from '../app/modules/transaction/shared/transaction.interface';
+import {
+  IAccount,
+  IGetAccountResponse,
+  IGetAccountListResponse,
+  IPostPutAccountResponse,
+} from '../app/modules/account/shared/account.interface';
+
+const account1: IAccount = {
+  id: 1,
+  name: 'Main',
+};
 
 const transaction1: ITransaction = {
   id: 1,
@@ -40,4 +51,24 @@ export class MockApiService {
   putTransaction = jest.fn(() => of(postPutTransactionResponse));
   postTransaction = jest.fn(() => of(postPutTransactionResponse));
   deleteTransaction = jest.fn(() => of(undefined));
+}
+
+const getAccountsResponse: IGetAccountListResponse = {
+  accountList: [account1],
+};
+
+const getAccountResponse: IGetAccountResponse = {
+  account: account1,
+};
+
+const postPutAccountResponse: IPostPutAccountResponse = {
+  account: account1,
+};
+
+export class MockAccountApiService {
+  getAccountList = jest.fn(() => of(getAccountsResponse));
+  getAccount = jest.fn(() => of(getAccountResponse));
+  putAccount = jest.fn(() => of(postPutAccountResponse));
+  postAccount = jest.fn(() => of(postPutAccountResponse));
+  deleteAccount = jest.fn(() => of(undefined));
 }

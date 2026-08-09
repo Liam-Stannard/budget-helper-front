@@ -1,8 +1,11 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/guard/auth.guard';
 import { LandingComponent } from './modules/login/landing/landing.component';
-import { HomeComponent } from './modules/transaction/components/home/home.component';
+import { HomeComponent } from './modules/home/home.component';
+import { TransactionPageComponent } from './modules/transaction/components/transaction-page/transaction-page.component';
 import { TransactionDetailsComponent } from './modules/transaction/components/transaction-details/transaction-details.component';
+import { AccountListWrapperComponent } from './modules/account/components/account-list-wrapper/account-list-wrapper.component';
+import { AccountDetailsComponent } from './modules/account/components/account-details/account-details.component';
 
 export const routes: Routes = [
   {
@@ -16,6 +19,12 @@ export const routes: Routes = [
     title: 'Home',
     canActivate: [authGuard()],
   },
+  {
+    component: TransactionPageComponent,
+    path: 'transactions',
+    title: 'Transactions',
+    canActivate: [authGuard()],
+  },
   //TODO - add canDeactivate
   {
     component: TransactionDetailsComponent,
@@ -27,6 +36,25 @@ export const routes: Routes = [
     component: TransactionDetailsComponent,
     path: 'transaction/:MODE',
     title: 'Add Transaction',
+    canActivate: [authGuard()],
+  },
+  {
+    component: AccountListWrapperComponent,
+    path: 'accounts',
+    title: 'Accounts',
+    canActivate: [authGuard()],
+  },
+  //TODO - add canDeactivate
+  {
+    component: AccountDetailsComponent,
+    path: 'account/:MODE/:ID',
+    title: 'Add Account',
+    canActivate: [authGuard()],
+  },
+  {
+    component: AccountDetailsComponent,
+    path: 'account/:MODE',
+    title: 'Add Account',
     canActivate: [authGuard()],
   },
   { path: '**', redirectTo: 'home' },
