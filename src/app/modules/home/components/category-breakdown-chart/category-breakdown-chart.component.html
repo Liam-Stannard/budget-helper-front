@@ -1,0 +1,20 @@
+@if (data.length > 0) {
+<div class="chart">
+  @for (item of data; track item.category) {
+  <div class="row">
+    <span class="row-label">{{ label(item.category) }}</span>
+    <div class="bar-track">
+      <div
+        class="bar"
+        [style.width.%]="widthPercent(item.amount)"
+        [style.background-color]="colorVar(item.category)"
+        [title]="label(item.category) + ': ' + (item.amount | currency)"
+      ></div>
+    </div>
+    <span class="row-value">{{ item.amount | currency }}</span>
+  </div>
+  }
+</div>
+} @else {
+<p class="empty-state">No transactions yet.</p>
+}

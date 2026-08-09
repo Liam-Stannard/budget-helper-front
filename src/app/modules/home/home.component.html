@@ -1,2 +1,22 @@
 <h1 class="mat-h1">Summary</h1>
-<p>A combined summary of your accounts and transactions is coming soon.</p>
+
+@if (loading()) {
+<mat-progress-bar mode="indeterminate" />
+}
+
+@if (!loading()) {
+<div class="stat-row">
+  <app-stat-tile
+    label="Total this month"
+    [value]="(totalThisMonth() | currency)!"
+  />
+  <app-stat-tile
+    label="Transactions this month"
+    [value]="countThisMonth().toString()"
+  />
+  <app-stat-tile label="Top category" [value]="topCategoryLabel()" />
+</div>
+
+<h2 class="mat-h2">Spending by category</h2>
+<app-category-breakdown-chart [data]="breakdown()" />
+}
