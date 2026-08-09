@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, signal } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -34,6 +34,8 @@ import {
   ITransactionForm,
   ITransactionFormValues,
 } from './transaction-card.interfaces';
+import { AccountApiService } from '../../../account/api/account-api.service';
+import { IAccount } from '../../../account/shared/account.interface';
 
 @Component({
   selector: 'transaction-card.',
@@ -59,6 +61,7 @@ export class TransactionCardComponent
   implements OnInit, OnDestroy
 {
   protected categoryOptions: MenuOption<string, Category>[] = CATEGORY_OPTIONS;
+  protected accounts = signal<IAccount[]>([]);
 
   protected form!: FormGroup<ITransactionForm>;
   protected formData!: ITransactionFormValues;
@@ -68,7 +71,8 @@ export class TransactionCardComponent
 
   constructor(
     private fb: FormBuilder,
-    private apiService: TransactionApiService
+    private apiService: TransactionApiService,
+    private accountApiService: AccountApiService
   ) {
     super();
   }
@@ -88,7 +92,16 @@ export class TransactionCardComponent
     }
 
     this.form = this.formInit();
+    this.loadAccounts();
     super.ngOnInit();
+  }
+
+  protected loadAccounts(): void {
+    this.accountApiService.getAccountList().subscribe({
+      next: (res) => {
+        this.accounts.set(res.accountList);
+      },
+    });
   }
 
   override ngOnDestroy(): void {
@@ -202,6 +215,10 @@ export class TransactionCardComponent
       category: formValues.category,
       account: formValues.account,
     };
+  }
+
+  protected compareAccounts(first: IAccount, second: IAccount): boolean {
+    return first && second ? first.id === second.id : first === second;
   }
 
   protected displayOptionCompare(

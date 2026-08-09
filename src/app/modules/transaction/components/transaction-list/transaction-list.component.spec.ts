@@ -15,7 +15,7 @@ import {
 const transaction1: ITransaction = {
   id: 1,
   amount: '100.00',
-  account: 'test',
+  account: { id: 1, name: 'test' },
   category: 'FOOD',
   title: 'test',
   date: '2020-01-01',

@@ -1,4 +1,5 @@
 import { Category } from './transaction.types';
+import { IAccount } from '../../account/shared/account.interface';
 
 export type ITransaction = {
   id?: number;
@@ -6,7 +7,7 @@ export type ITransaction = {
   amount: string;
   date: string;
   category: Category;
-  account: string;
+  account: IAccount;
 };
 
 export type IGetTransactionListResponse = {

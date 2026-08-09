@@ -21,7 +21,7 @@ import { APP_CONSTANTS } from '../../../../app.constants';
 const transaction1: ITransaction = {
   id: 1,
   amount: '100.00',
-  account: 'test',
+  account: { id: 1, name: 'Main' },
   category: 'FOOD',
   title: 'test',
   date: '2020-01-01',

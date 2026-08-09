@@ -21,7 +21,7 @@ const account1: IAccount = {
 const transaction1: ITransaction = {
   id: 1,
   amount: '100.00',
-  account: 'test',
+  account: account1,
   category: 'FOOD',
   title: 'test',
   date: '2020-01-01',

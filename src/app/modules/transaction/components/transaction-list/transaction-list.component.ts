@@ -52,6 +52,13 @@ export class TransactionListComponent implements OnChanges, AfterViewInit {
   protected columns: string[] = TRANSACTION_LIST_TABLE_COLUMNS;
   protected dataSource = new MatTableDataSource<ITransaction>([]);
 
+  constructor() {
+    this.dataSource.sortingDataAccessor = (item, property) =>
+      property === 'account'
+        ? item.account.name
+        : (item as unknown as Record<string, string>)[property];
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['tableData']) {
       this.dataSource.data = this.tableData;

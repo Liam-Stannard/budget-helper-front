@@ -4,6 +4,7 @@ import { TransactionCardComponent } from './transaction-card.component';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import {
+  MockAccountApiService,
   MockApiService,
   MockAuthService,
 } from '../../../../../test/mockService';
@@ -11,6 +12,7 @@ import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { TransactionApiService } from '../../api/transaction-api.service';
+import { AccountApiService } from '../../../account/api/account-api.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 
 describe('TransactionCardComponent', () => {
@@ -36,6 +38,10 @@ describe('TransactionCardComponent', () => {
         {
           provide: TransactionApiService,
           useClass: MockApiService,
+        },
+        {
+          provide: AccountApiService,
+          useClass: MockAccountApiService,
         },
         provideRouter([]),
         provideNativeDateAdapter(),

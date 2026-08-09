@@ -4,9 +4,13 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { provideNativeDateAdapter } from '@angular/material/core';
-import { MockAuthService } from '../../../../../test/mockService';
+import {
+  MockAccountApiService,
+  MockAuthService,
+} from '../../../../../test/mockService';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { TransactionApiService } from '../../api/transaction-api.service';
+import { AccountApiService } from '../../../account/api/account-api.service';
 import { MockApiService } from '../transaction-list/transaction-list.component.spec';
 
 describe('TransactionDetailsComponent', () => {
@@ -26,6 +30,10 @@ describe('TransactionDetailsComponent', () => {
         {
           provide: TransactionApiService,
           useClass: MockApiService,
+        },
+        {
+          provide: AccountApiService,
+          useClass: MockAccountApiService,
         },
         provideRouter([]),
         provideNativeDateAdapter(),
