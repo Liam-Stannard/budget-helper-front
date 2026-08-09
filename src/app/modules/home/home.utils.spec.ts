@@ -2,6 +2,8 @@ import dayjs from 'dayjs';
 import { ITransaction } from '../transaction/shared/transaction.interface';
 import {
   filterCurrentMonth,
+  filterPreviousMonth,
+  getMonthOverMonthDelta,
   getTopCategory,
   getTotalAmount,
   sumByCategory,
@@ -39,6 +41,34 @@ describe('home.utils', () => {
       });
 
       expect(filterCurrentMonth([transaction])).toEqual([]);
+    });
+  });
+
+  describe('filterPreviousMonth', () => {
+    it('should return an empty array for an empty list', () => {
+      expect(filterPreviousMonth([])).toEqual([]);
+    });
+
+    it('should keep transactions dated in the previous month', () => {
+      const transaction = makeTransaction({
+        date: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
+      });
+
+      expect(filterPreviousMonth([transaction])).toEqual([transaction]);
+    });
+
+    it('should drop transactions dated in the current month', () => {
+      const transaction = makeTransaction({});
+
+      expect(filterPreviousMonth([transaction])).toEqual([]);
+    });
+
+    it('should drop transactions dated two months ago', () => {
+      const transaction = makeTransaction({
+        date: dayjs().subtract(2, 'month').format('YYYY-MM-DD'),
+      });
+
+      expect(filterPreviousMonth([transaction])).toEqual([]);
     });
   });
 
@@ -104,6 +134,36 @@ describe('home.utils', () => {
       expect(getTopCategory(breakdown)).toEqual({
         category: 'BILL',
         amount: 50,
+      });
+    });
+  });
+
+  describe('getMonthOverMonthDelta', () => {
+    it('should compute a positive change amount and percent when spend increased', () => {
+      expect(getMonthOverMonthDelta(150, 100)).toEqual({
+        changeAmount: 50,
+        changePercent: 50,
+      });
+    });
+
+    it('should compute a negative change amount and percent when spend decreased', () => {
+      expect(getMonthOverMonthDelta(50, 100)).toEqual({
+        changeAmount: -50,
+        changePercent: -50,
+      });
+    });
+
+    it('should leave changePercent undefined when there is no previous total to compare against', () => {
+      expect(getMonthOverMonthDelta(100, 0)).toEqual({
+        changeAmount: 100,
+        changePercent: undefined,
+      });
+    });
+
+    it('should report no change when both totals are zero', () => {
+      expect(getMonthOverMonthDelta(0, 0)).toEqual({
+        changeAmount: 0,
+        changePercent: undefined,
       });
     });
   });

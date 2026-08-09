@@ -1,4 +1,7 @@
 <mat-card class="stat-tile">
   <span class="label">{{ label }}</span>
   <span class="value">{{ value }}</span>
+  @if (delta) {
+  <span class="delta" [class.good]="deltaIsGood" [class.bad]="deltaIsGood === false">{{ delta }}</span>
+  }
 </mat-card>

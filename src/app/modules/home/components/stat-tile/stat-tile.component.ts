@@ -11,4 +11,6 @@ import { MatCardModule } from '@angular/material/card';
 export class StatTileComponent {
   @Input({ required: true }) label!: string;
   @Input({ required: true }) value!: string;
+  @Input() delta?: string;
+  @Input() deltaIsGood?: boolean;
 }

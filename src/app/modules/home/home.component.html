@@ -9,6 +9,8 @@
   <app-stat-tile
     label="Total this month"
     [value]="(totalThisMonth() | currency)!"
+    [delta]="deltaText()"
+    [deltaIsGood]="deltaIsGood()"
   />
   <app-stat-tile
     label="Transactions this month"

@@ -15,6 +15,14 @@ export function filterCurrentMonth(
   );
 }
 
+export function filterPreviousMonth(
+  transactions: ITransaction[]
+): ITransaction[] {
+  return transactions.filter((transaction) =>
+    dayjs(transaction.date).isSame(dayjs().subtract(1, 'month'), 'month')
+  );
+}
+
 export function getTotalAmount(transactions: ITransaction[]): number {
   return transactions.reduce(
     (total, transaction) => total + Number(transaction.amount),
@@ -42,4 +50,23 @@ export function getTopCategory(
   breakdown: ICategoryAmount[]
 ): ICategoryAmount | undefined {
   return breakdown[0];
+}
+
+export interface IMonthDelta {
+  changeAmount: number;
+  /** undefined when there's no previous-month total to compare against */
+  changePercent?: number;
+}
+
+export function getMonthOverMonthDelta(
+  currentTotal: number,
+  previousTotal: number
+): IMonthDelta {
+  return {
+    changeAmount: currentTotal - previousTotal,
+    changePercent:
+      previousTotal === 0
+        ? undefined
+        : ((currentTotal - previousTotal) / previousTotal) * 100,
+  };
 }

@@ -27,4 +27,41 @@ describe('StatTileComponent', () => {
     expect(text).toContain('Total this month');
     expect(text).toContain('£100.00');
   });
+
+  describe('delta', () => {
+    it('should not render a delta when none is provided', () => {
+      const deltaEl = (fixture.nativeElement as HTMLElement).querySelector(
+        '.delta'
+      );
+
+      expect(deltaEl).toBeNull();
+    });
+
+    it('should render a good delta with the good class', () => {
+      component.delta = '▼ £10.00 (10%)';
+      component.deltaIsGood = true;
+      fixture.detectChanges();
+
+      const deltaEl = (fixture.nativeElement as HTMLElement).querySelector(
+        '.delta'
+      )!;
+
+      expect(deltaEl.textContent).toContain('▼ £10.00 (10%)');
+      expect(deltaEl.classList).toContain('good');
+      expect(deltaEl.classList).not.toContain('bad');
+    });
+
+    it('should render a bad delta with the bad class', () => {
+      component.delta = '▲ £10.00 (10%)';
+      component.deltaIsGood = false;
+      fixture.detectChanges();
+
+      const deltaEl = (fixture.nativeElement as HTMLElement).querySelector(
+        '.delta'
+      )!;
+
+      expect(deltaEl.classList).toContain('bad');
+      expect(deltaEl.classList).not.toContain('good');
+    });
+  });
 });

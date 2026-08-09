@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AbstractComponent } from '../../core/component/abstract/abstract.component';
 import { TransactionApiService } from '../transaction/api/transaction-api.service';
@@ -9,6 +9,8 @@ import { StatTileComponent } from './components/stat-tile/stat-tile.component';
 import { CategoryBreakdownChartComponent } from './components/category-breakdown-chart/category-breakdown-chart.component';
 import {
   filterCurrentMonth,
+  filterPreviousMonth,
+  getMonthOverMonthDelta,
   getTopCategory,
   getTotalAmount,
   sumByCategory,
@@ -23,6 +25,7 @@ import {
     StatTileComponent,
     CategoryBreakdownChartComponent,
   ],
+  providers: [CurrencyPipe],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
@@ -44,6 +47,34 @@ export class HomeComponent
     () => this.currentMonthTransactions().length
   );
 
+  protected previousMonthTransactions = computed(() =>
+    filterPreviousMonth(this.transactions())
+  );
+
+  protected totalLastMonth = computed(() =>
+    getTotalAmount(this.previousMonthTransactions())
+  );
+
+  protected monthDelta = computed(() =>
+    getMonthOverMonthDelta(this.totalThisMonth(), this.totalLastMonth())
+  );
+
+  protected deltaIsGood = computed(() => this.monthDelta().changeAmount <= 0);
+
+  protected deltaText = computed(() => {
+    const delta = this.monthDelta();
+
+    if (delta.changePercent === undefined) {
+      return undefined;
+    }
+
+    const arrow = delta.changeAmount >= 0 ? '▲' : '▼';
+    const amount = this.currencyPipe.transform(Math.abs(delta.changeAmount));
+    const percent = Math.abs(Math.round(delta.changePercent));
+
+    return `${arrow} ${amount} (${percent}%) vs last month`;
+  });
+
   protected breakdown = computed(() => sumByCategory(this.transactions()));
 
   protected topCategoryLabel = computed(() => {
@@ -59,7 +90,10 @@ export class HomeComponent
     );
   });
 
-  constructor(private transactionApiService: TransactionApiService) {
+  constructor(
+    private transactionApiService: TransactionApiService,
+    private currencyPipe: CurrencyPipe
+  ) {
     super();
   }
 
