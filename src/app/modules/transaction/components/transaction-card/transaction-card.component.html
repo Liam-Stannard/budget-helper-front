@@ -6,6 +6,7 @@
   <mat-card-header>
     <mat-card-title>Transaction</mat-card-title>
   </mat-card-header>
+  @if (!loading()) {
   <mat-card-content>
     <form
       [formGroup]="form"
@@ -110,4 +111,5 @@
       </mat-card-actions>
     </form>
   </mat-card-content>
+  }
 </mat-card>
