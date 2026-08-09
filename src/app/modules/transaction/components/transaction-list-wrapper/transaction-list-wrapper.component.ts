@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, Signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { APP_CONSTANTS } from '../../../../app.constants';
 import { IMatMenuButtonActionEvent } from '../transaction-list/transaction-list.interfaces';
 import { TransactionListComponent } from '../transaction-list/transaction-list.component';
@@ -18,7 +18,7 @@ export class TransactionListWrapperComponent
   extends AbstractComponent
   implements OnInit, OnDestroy
 {
-  protected data!: ITransaction[];
+  protected data = signal<ITransaction[]>([]);
 
   constructor(private transactionApiService: TransactionApiService) {
     super();
@@ -35,7 +35,7 @@ export class TransactionListWrapperComponent
   protected getData(): void {
     this.transactionApiService.getTransactionList().subscribe({
       next: (res) => {
-        this.data = res.transactionList;
+        this.data.set(res.transactionList);
         this.loading = false;
       },
     });

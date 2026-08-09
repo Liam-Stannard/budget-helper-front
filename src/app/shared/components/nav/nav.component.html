@@ -12,13 +12,13 @@
       </button>
       <mat-menu #menu="matMenu">
         <span (mouseleave)="menuTrigger.closeMenu()">
-          <div *ngIf="!authService.isLoggedIn()">
+          <div *ngIf="!authService.loggedIn()">
             <button mat-menu-item routerLink="/login">
               <mat-icon>home</mat-icon>
               <span>Login</span>
             </button>
           </div>
-          <div *ngIf="authService.isLoggedIn()">
+          <div *ngIf="authService.loggedIn()">
             <button mat-menu-item routerLink="/home">
               <mat-icon>home</mat-icon>
               <span>Home</span>

@@ -1,6 +1,6 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { AbstractNetworkingComponent } from '../../../../core/component/abstract/abstract-networking.component';
+import { AbstractNetworkingSignalComponent } from '../../../../core/component/abstract/abstract-networking-signals.component';
 import { Observable } from 'rxjs';
 import {
   FormBuilder,
@@ -48,7 +48,7 @@ import {
   styleUrl: './transaction-card.component.scss',
 })
 export class TransactionCardComponent
-  extends AbstractNetworkingComponent<
+  extends AbstractNetworkingSignalComponent<
     IGetTransactionResponse,
     IPutTransactionRequest
   >
@@ -141,12 +141,18 @@ export class TransactionCardComponent
   }
 
   protected mapGetResponseToFormData(): ITransactionFormValues {
+    const response = this.data();
+
+    if (!response) {
+      throw Error('Transaction data should be loaded');
+    }
+
     return {
-      title: this.getResponse.transaction.title,
-      amount: this.getResponse.transaction.amount,
-      date: this.getResponse.transaction.date,
-      category: this.getResponse.transaction.category,
-      account: this.getResponse.transaction.account,
+      title: response.transaction.title,
+      amount: response.transaction.amount,
+      date: response.transaction.date,
+      category: response.transaction.category,
+      account: response.transaction.account,
     };
   }
 

@@ -1,15 +1,11 @@
-import { Signal, signal, WritableSignal } from '@angular/core';
+import { signal } from '@angular/core';
 import { of } from 'rxjs';
 import {
   IGetTransactionResponse,
   IGetTransactionListResponse,
+  IPostPutTransactionResponse,
   ITransaction,
-} from '../app/modules/transaction/api/interfaces/transaction.interface';
-import {
-  HttpResult,
-  TransactionApiService,
-} from '../app/modules/transaction/api/transaction-api.service';
-import { toSignal } from '@angular/core/rxjs-interop';
+} from '../app/modules/transaction/shared/transaction.interface';
 
 const transaction1: ITransaction = {
   id: 1,
@@ -28,19 +24,20 @@ const getTransactionResponse: IGetTransactionResponse = {
   transaction: transaction1,
 };
 
+const postPutTransactionResponse: IPostPutTransactionResponse = {
+  transaction: transaction1,
+};
+
 export class MockAuthService {
   authenticate = of(true);
   isLoggedIn = jest.fn(() => true);
+  loggedIn = signal(true);
 }
 
 export class MockApiService {
-  transactions: Signal<IGetTransactionListResponse> =
-    signal<IGetTransactionListResponse>(getTransactionsResponse);
-
-  transactionsError: Signal<string | undefined> = signal(undefined);
-
-  transactionsResult = signal<HttpResult<IGetTransactionListResponse>>({
-    data: getTransactionsResponse,
-    error: undefined,
-  });
+  getTransactionList = jest.fn(() => of(getTransactionsResponse));
+  getTransaction = jest.fn(() => of(getTransactionResponse));
+  putTransaction = jest.fn(() => of(postPutTransactionResponse));
+  postTransaction = jest.fn(() => of(postPutTransactionResponse));
+  deleteTransaction = jest.fn(() => of(undefined));
 }

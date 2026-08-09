@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import {
   LOCAL_STORAGE_KEY_ACCESS,
   LOCAL_STORAGE_KEY_REFRESH,
@@ -23,6 +23,8 @@ import { Router } from '@angular/router';
   providedIn: 'root',
 })
 export class AuthService {
+  public loggedIn = signal<boolean>(this.isLoggedIn());
+
   constructor(private httpClient: HttpClient, private router: Router) {}
 
   public register(
@@ -96,10 +98,14 @@ export class AuthService {
     if (response.refresh) {
       localStorage.setItem(LOCAL_STORAGE_KEY_REFRESH, response.refresh);
     }
+
+    this.loggedIn.set(this.isLoggedIn());
   }
 
   public clearTokens(): void {
     localStorage.removeItem(LOCAL_STORAGE_KEY_ACCESS);
     localStorage.removeItem(LOCAL_STORAGE_KEY_REFRESH);
+
+    this.loggedIn.set(false);
   }
 }
