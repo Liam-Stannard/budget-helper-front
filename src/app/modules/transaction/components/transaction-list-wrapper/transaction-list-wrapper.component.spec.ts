@@ -1,17 +1,20 @@
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { signal, Signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { ActivatedRoute, provideRouter } from '@angular/router';
-import { MockAuthService } from '../../../../../test/mockService';
+import { ActivatedRoute, provideRouter, Router } from '@angular/router';
+import { throwError } from 'rxjs';
+import {
+  MockApiService,
+  MockAuthService,
+} from '../../../../../test/mockService';
 import {
   IGetTransactionListResponse,
   ITransaction,
 } from '../../shared/transaction.interface';
 import { AuthService } from '../../../../core/auth/auth.service';
-import { AbstractComponent } from '../../../../core/component/abstract/abstract.component';
 import { TransactionApiService } from '../../api/transaction-api.service';
 import { TransactionListWrapperComponent } from './transaction-list-wrapper.component';
+import { APP_CONSTANTS } from '../../../../app.constants';
 
 const transaction1: ITransaction = {
   id: 1,
@@ -26,11 +29,11 @@ const getTransactionsResponse: IGetTransactionListResponse = {
   transactionList: [transaction1],
 };
 
-export class MockApiService {}
-
 describe('TransactionListWrapperComponent', () => {
   let component: TransactionListWrapperComponent;
   let fixture: ComponentFixture<TransactionListWrapperComponent>;
+  let transactionApiService: MockApiService;
+  let router: Router;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -56,96 +59,127 @@ describe('TransactionListWrapperComponent', () => {
 
     fixture = TestBed.createComponent(TransactionListWrapperComponent);
     component = fixture.componentInstance;
+    transactionApiService = TestBed.inject(
+      TransactionApiService
+    ) as unknown as MockApiService;
+    router = TestBed.inject(Router);
+
     fixture.detectChanges();
   });
-  /*
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
   describe('ngOnInit', () => {
-    beforeEach(() => {
-      jest.spyOn(AbstractComponent.prototype, 'ngOnInit').mockImplementation();
+    it('should call getTransactionList', () => {
+      expect(transactionApiService.getTransactionList).toHaveBeenCalled();
     });
 
-    it('should call super.ngOnInit', () => {
-      component.ngOnInit();
-
-      expect(AbstractComponent.prototype.ngOnInit).toHaveBeenCalledTimes(1);
-    });
-
-    it('should set the data signal', () => {
-      component.ngOnInit();
-
-      expect(component['data']).toBe(transactions);
-
-      expect(component['data']()).toStrictEqual(
+    it('should set the data signal from the response', () => {
+      expect(component['data']()).toEqual(
         getTransactionsResponse.transactionList
       );
     });
 
-    it('should set the error signal', () => {
-      component.ngOnInit();
-
-      expect(component['error']).toBe(transactionsError);
-    });
-
     it('should set loading to false', () => {
-      component.ngOnInit();
-
       expect(component['loading']).toBe(false);
     });
   });
 
-  describe('ngOnDestroy', () => {
-    beforeEach(() => {
-      jest
-        .spyOn(AbstractComponent.prototype, 'ngOnDestroy')
-        .mockImplementation();
-    });
-
-    it('should call super.ngOnDestroy', () => {
-      component.ngOnDestroy();
-
-      expect(AbstractComponent.prototype.ngOnDestroy).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('add', () => {
-    beforeEach(() => {
-      jest
-        .spyOn(AbstractComponent.prototype as any, 'navigate')
-        .mockImplementation();
-    });
-
-    it('should call navigate to the correct route', () => {
-      component['add']();
-
-      expect(component['navigate']).toHaveBeenCalledWith([
-        'transaction',
-        'add',
-      ]);
-    });
-  });
-
   describe('edit', () => {
-    beforeEach(() => {
-      jest
-        .spyOn(AbstractComponent.prototype as any, 'navigate')
-        .mockImplementation();
-    });
+    it('should navigate to the edit route for the transaction', () => {
+      const navigateSpy = jest
+        .spyOn(router, 'navigate')
+        .mockResolvedValue(true);
 
-    it('should call navigate to the correct route', () => {
       component['edit'](transaction1);
 
-      expect(component['navigate']).toHaveBeenCalledWith([
-        'transaction',
-        'edit',
-        '1',
-      ]);
+      expect(navigateSpy).toHaveBeenCalledWith(['transaction', 'edit', '1']);
+    });
+
+    it('should throw if the transaction has no id', () => {
+      expect(() =>
+        component['edit']({ ...transaction1, id: undefined })
+      ).toThrow();
     });
   });
 
-  describe('delete', () => {});
-  */
+  describe('delete', () => {
+    let alertSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      alertSpy = jest.spyOn(window, 'alert').mockImplementation();
+    });
+
+    it('should throw if the transaction has no id', () => {
+      expect(() =>
+        component['delete']({ ...transaction1, id: undefined })
+      ).toThrow();
+    });
+
+    it('should do nothing if the user cancels the confirm dialog', () => {
+      jest.spyOn(window, 'confirm').mockReturnValue(false);
+
+      component['delete'](transaction1);
+
+      expect(transactionApiService.deleteTransaction).not.toHaveBeenCalled();
+    });
+
+    it('should call deleteTransaction and refresh the list on confirm', () => {
+      jest.spyOn(window, 'confirm').mockReturnValue(true);
+      transactionApiService.getTransactionList.mockClear();
+
+      component['delete'](transaction1);
+
+      expect(transactionApiService.deleteTransaction).toHaveBeenCalledWith(1);
+      expect(alertSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Deleted transaction')
+      );
+      expect(transactionApiService.getTransactionList).toHaveBeenCalledTimes(
+        1
+      );
+    });
+
+    it('should alert on delete failure', () => {
+      jest.spyOn(window, 'confirm').mockReturnValue(true);
+      transactionApiService.deleteTransaction.mockReturnValueOnce(
+        throwError(() => new Error('failed'))
+      );
+
+      component['delete'](transaction1);
+
+      expect(alertSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Delete transaction failed')
+      );
+    });
+  });
+
+  describe('triggerAction', () => {
+    it('should call edit for ACTION_EDIT', () => {
+      const editSpy = jest
+        .spyOn(component as any, 'edit')
+        .mockImplementation();
+
+      component['triggerAction']({
+        action: APP_CONSTANTS.ACTION_EDIT,
+        item: transaction1,
+      });
+
+      expect(editSpy).toHaveBeenCalledWith(transaction1);
+    });
+
+    it('should call delete for ACTION_DELETE', () => {
+      const deleteSpy = jest
+        .spyOn(component as any, 'delete')
+        .mockImplementation();
+
+      component['triggerAction']({
+        action: APP_CONSTANTS.ACTION_DELETE,
+        item: transaction1,
+      });
+
+      expect(deleteSpy).toHaveBeenCalledWith(transaction1);
+    });
+  });
 });
