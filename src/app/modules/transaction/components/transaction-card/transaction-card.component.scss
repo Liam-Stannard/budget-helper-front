@@ -9,6 +9,10 @@
   }
 }
 
+mat-card-header {
+  margin-bottom: vars.$spacing-sm;
+}
+
 mat-card-content {
   width: 90%;
 }
