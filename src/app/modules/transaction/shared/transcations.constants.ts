@@ -8,14 +8,14 @@ export const CATEGORY_OPTIONS: MenuOption<string, Category>[] = [
   },
   {
     view: 'Bill',
-    value: 'Bill',
+    value: 'BILL',
   },
   {
     view: 'Subscription',
-    value: 'Subscription',
+    value: 'SUBSCRIPTION',
   },
   {
     view: 'Clothing',
-    value: 'Clothing',
+    value: 'CLOTHING',
   },
 ];
