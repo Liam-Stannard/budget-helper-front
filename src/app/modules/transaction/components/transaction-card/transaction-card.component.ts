@@ -1,7 +1,10 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { AbstractNetworkingSignalComponent } from '../../../../core/component/abstract/abstract-networking-signals.component';
 import { Observable } from 'rxjs';
+import dayjs from 'dayjs';
 import {
   FormBuilder,
   FormGroup,
@@ -17,7 +20,6 @@ import { MenuOption } from '../../../../shared/interface/menu-options.interfaces
 import {
   freeTextValidator,
   moneyValidator,
-  dateValidator,
 } from '../../../../shared/validators/validator';
 import { TransactionApiService } from '../../api/transaction-api.service';
 import {
@@ -39,6 +41,8 @@ import {
   imports: [
     ReactiveFormsModule,
     MatCardModule,
+    MatProgressBarModule,
+    MatDatepickerModule,
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
@@ -101,10 +105,7 @@ export class TransactionCardComponent
         Validators.required,
         moneyValidator,
       ]),
-      date: this.fb.nonNullable.control(undefined, [
-        Validators.required,
-        dateValidator,
-      ]),
+      date: this.fb.nonNullable.control(undefined, [Validators.required]),
       category: this.fb.nonNullable.control(undefined, [Validators.required]),
       account: this.fb.nonNullable.control(undefined, [Validators.required]),
     });
@@ -150,7 +151,7 @@ export class TransactionCardComponent
     return {
       title: response.transaction.title,
       amount: response.transaction.amount,
-      date: response.transaction.date,
+      date: dayjs(response.transaction.date).toDate(),
       category: response.transaction.category,
       account: response.transaction.account,
     };
@@ -176,7 +177,7 @@ export class TransactionCardComponent
       id: Number(this.id),
       title: formValues.title,
       amount: formValues.amount,
-      date: formValues.date,
+      date: dayjs(formValues.date).format('YYYY-MM-DD'),
       category: formValues.category,
       account: formValues.account,
     };
@@ -197,7 +198,7 @@ export class TransactionCardComponent
     return {
       title: formValues.title,
       amount: formValues.amount,
-      date: formValues.date,
+      date: dayjs(formValues.date).format('YYYY-MM-DD'),
       category: formValues.category,
       account: formValues.account,
     };

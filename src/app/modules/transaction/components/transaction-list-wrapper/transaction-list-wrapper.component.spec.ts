@@ -2,7 +2,9 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { ActivatedRoute, provideRouter, Router } from '@angular/router';
-import { throwError } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { of, throwError } from 'rxjs';
 import {
   MockApiService,
   MockAuthService,
@@ -34,6 +36,8 @@ describe('TransactionListWrapperComponent', () => {
   let fixture: ComponentFixture<TransactionListWrapperComponent>;
   let transactionApiService: MockApiService;
   let router: Router;
+  let dialog: MatDialog;
+  let snackBar: MatSnackBar;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -63,6 +67,8 @@ describe('TransactionListWrapperComponent', () => {
       TransactionApiService
     ) as unknown as MockApiService;
     router = TestBed.inject(Router);
+    dialog = TestBed.inject(MatDialog);
+    snackBar = TestBed.inject(MatSnackBar);
 
     fixture.detectChanges();
   });
@@ -83,7 +89,7 @@ describe('TransactionListWrapperComponent', () => {
     });
 
     it('should set loading to false', () => {
-      expect(component['loading']).toBe(false);
+      expect(component['loading']()).toBe(false);
     });
   });
 
@@ -106,10 +112,10 @@ describe('TransactionListWrapperComponent', () => {
   });
 
   describe('delete', () => {
-    let alertSpy: jest.SpyInstance;
+    let snackBarSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      alertSpy = jest.spyOn(window, 'alert').mockImplementation();
+      snackBarSpy = jest.spyOn(snackBar, 'open').mockImplementation();
     });
 
     it('should throw if the transaction has no id', () => {
@@ -119,7 +125,9 @@ describe('TransactionListWrapperComponent', () => {
     });
 
     it('should do nothing if the user cancels the confirm dialog', () => {
-      jest.spyOn(window, 'confirm').mockReturnValue(false);
+      jest
+        .spyOn(dialog, 'open')
+        .mockReturnValue({ afterClosed: () => of(false) } as any);
 
       component['delete'](transaction1);
 
@@ -127,30 +135,38 @@ describe('TransactionListWrapperComponent', () => {
     });
 
     it('should call deleteTransaction and refresh the list on confirm', () => {
-      jest.spyOn(window, 'confirm').mockReturnValue(true);
+      jest
+        .spyOn(dialog, 'open')
+        .mockReturnValue({ afterClosed: () => of(true) } as any);
       transactionApiService.getTransactionList.mockClear();
 
       component['delete'](transaction1);
 
       expect(transactionApiService.deleteTransaction).toHaveBeenCalledWith(1);
-      expect(alertSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Deleted transaction')
+      expect(snackBarSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Deleted transaction'),
+        'Dismiss',
+        expect.any(Object)
       );
       expect(transactionApiService.getTransactionList).toHaveBeenCalledTimes(
         1
       );
     });
 
-    it('should alert on delete failure', () => {
-      jest.spyOn(window, 'confirm').mockReturnValue(true);
+    it('should notify on delete failure', () => {
+      jest
+        .spyOn(dialog, 'open')
+        .mockReturnValue({ afterClosed: () => of(true) } as any);
       transactionApiService.deleteTransaction.mockReturnValueOnce(
         throwError(() => new Error('failed'))
       );
 
       component['delete'](transaction1);
 
-      expect(alertSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Delete transaction failed')
+      expect(snackBarSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Delete transaction failed'),
+        'Dismiss',
+        expect.any(Object)
       );
     });
   });

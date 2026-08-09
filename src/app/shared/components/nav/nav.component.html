@@ -1,42 +1,29 @@
 <mat-toolbar color="primary">
   <mat-toolbar-row>
-    <span class="flex-grow">
-      <button
-        mat-icon-button
-        [matMenuTriggerFor]="menu"
-        #menuTrigger="matMenuTrigger"
-        (click)="menuTrigger.openMenu()"
-        aria-label="menu"
-      >
-        <mat-icon>menu</mat-icon>
-      </button>
-      <mat-menu #menu="matMenu">
-        <span (mouseleave)="menuTrigger.closeMenu()">
-          <div *ngIf="!authService.loggedIn()">
-            <button mat-menu-item routerLink="/login">
-              <mat-icon>home</mat-icon>
-              <span>Login</span>
-            </button>
-          </div>
-          <div *ngIf="authService.loggedIn()">
-            <button mat-menu-item routerLink="/home">
-              <mat-icon>home</mat-icon>
-              <span>Home</span>
-            </button>
+    <span class="flex-grow">Budget Helper</span>
 
-            <button mat-menu-item (click)="authService.logout()">
-              <mat-icon>exit_to_app</mat-icon>
-              <span>Logout</span>
-            </button>
-          </div>
-        </span>
-      </mat-menu>
-    </span>
-    <span class="flex-grow">My App</span>
+    @if (!authService.loggedIn()) {
+    <a mat-button routerLink="/login">
+      <mat-icon>login</mat-icon>
+      Login
+    </a>
+    } @else {
+    <a mat-button routerLink="/home">
+      <mat-icon>home</mat-icon>
+      Home
+    </a>
+    <button mat-button (click)="authService.logout()">
+      <mat-icon>exit_to_app</mat-icon>
+      Logout
+    </button>
+    }
   </mat-toolbar-row>
+
+  @if (showBackButton()) {
   <mat-toolbar-row>
     <button mat-icon-button aria-label="back" (click)="back()">
       <mat-icon>arrow_back</mat-icon>
     </button>
   </mat-toolbar-row>
+  }
 </mat-toolbar>

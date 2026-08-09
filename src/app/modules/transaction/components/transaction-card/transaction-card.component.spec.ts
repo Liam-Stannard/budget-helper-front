@@ -9,6 +9,7 @@ import {
 } from '../../../../../test/mockService';
 import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { TransactionApiService } from '../../api/transaction-api.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 
@@ -37,6 +38,7 @@ describe('TransactionCardComponent', () => {
           useClass: MockApiService,
         },
         provideRouter([]),
+        provideNativeDateAdapter(),
       ],
     }).compileComponents();
 

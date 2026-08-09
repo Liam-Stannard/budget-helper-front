@@ -3,6 +3,7 @@ import { TransactionDetailsComponent } from './transaction-details.component';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { ActivatedRoute, provideRouter } from '@angular/router';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { MockAuthService } from '../../../../../test/mockService';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { TransactionApiService } from '../../api/transaction-api.service';
@@ -27,6 +28,7 @@ describe('TransactionDetailsComponent', () => {
           useClass: MockApiService,
         },
         provideRouter([]),
+        provideNativeDateAdapter(),
       ],
     }).compileComponents();
 

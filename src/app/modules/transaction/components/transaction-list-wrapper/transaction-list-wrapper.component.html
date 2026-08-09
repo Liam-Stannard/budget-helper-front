@@ -1,16 +1,21 @@
 <div class="transaction-list-wrapper">
+  @if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+  }
+
   <transaction-list
     [tableData]="data()"
     (actionTriggered)="triggerAction($event)"
   />
 
-  <div class="flex flex-row-end">
-    <button
-      mat-raised-button
-      color="primary"
-      (click)="navigate(['transaction/add'])"
-    >
-      Add
-    </button>
-  </div>
+  <button
+    mat-fab
+    extended
+    color="primary"
+    class="add-fab"
+    (click)="navigate(['transaction/add'])"
+  >
+    <mat-icon>add</mat-icon>
+    Add
+  </button>
 </div>

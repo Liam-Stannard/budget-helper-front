@@ -3,14 +3,26 @@ import { APP_CONSTANTS } from '../../../../app.constants';
 import { IMatMenuButtonActionEvent } from '../transaction-list/transaction-list.interfaces';
 import { TransactionListComponent } from '../transaction-list/transaction-list.component';
 import { CommonModule } from '@angular/common';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { AbstractComponent } from '../../../../core/component/abstract/abstract.component';
 import { TransactionApiService } from '../../api/transaction-api.service';
 import { ITransaction } from '../../shared/transaction.interface';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-transaction-list-wrapper',
   standalone: true,
-  imports: [CommonModule, TransactionListComponent],
+  imports: [
+    CommonModule,
+    MatProgressBarModule,
+    MatButtonModule,
+    MatIconModule,
+    TransactionListComponent,
+  ],
   templateUrl: './transaction-list-wrapper.component.html',
   styleUrl: './transaction-list-wrapper.component.scss',
 })
@@ -20,11 +32,16 @@ export class TransactionListWrapperComponent
 {
   protected data = signal<ITransaction[]>([]);
 
-  constructor(private transactionApiService: TransactionApiService) {
+  constructor(
+    private transactionApiService: TransactionApiService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
+  ) {
     super();
   }
 
   override ngOnInit(): void {
+    super.ngOnInit();
     this.getData();
   }
 
@@ -36,7 +53,7 @@ export class TransactionListWrapperComponent
     this.transactionApiService.getTransactionList().subscribe({
       next: (res) => {
         this.data.set(res.transactionList);
-        this.loading = false;
+        this.loading.set(false);
       },
     });
   }
@@ -71,24 +88,37 @@ export class TransactionListWrapperComponent
       throw Error('Transaction should have an ID');
     }
 
-    if (
-      confirm(
-        `Are you sure to delete transaction ${transaction.title} - ${transaction.account} - ${transaction.amount}`
-      )
-    ) {
-      this.transactionApiService.deleteTransaction(transaction.id).subscribe({
+    const id = transaction.id;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete transaction',
+        message: `Are you sure you want to delete ${transaction.title} - ${transaction.account} - ${transaction.amount}?`,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.transactionApiService.deleteTransaction(id).subscribe({
         next: () => {
-          alert(
-            `Deleted transaction ${transaction.title} - ${transaction.account} - ${transaction.amount}`
+          this.snackBar.open(
+            `Deleted transaction ${transaction.title}`,
+            'Dismiss',
+            { duration: 3000 }
           );
           this.getData();
         },
         error: () => {
-          alert(
-            `Delete transaction failed for ${transaction.title} - ${transaction.account} - ${transaction.amount}`
+          this.snackBar.open(
+            `Delete transaction failed for ${transaction.title}`,
+            'Dismiss',
+            { duration: 3000 }
           );
         },
       });
-    }
+    });
   }
 }

@@ -1,4 +1,34 @@
-@import "@angular/material/prebuilt-themes/deeppurple-amber.css";
+@use "@angular/material" as mat;
+@use "styles/variables" as vars;
+
+$light-theme: mat.define-theme(
+  (
+    color: (
+      theme-type: light,
+      primary: mat.$violet-palette,
+      tertiary: mat.$orange-palette,
+    ),
+  )
+);
+
+$dark-theme: mat.define-theme(
+  (
+    color: (
+      theme-type: dark,
+      primary: mat.$violet-palette,
+      tertiary: mat.$orange-palette,
+    ),
+  )
+);
+
+html {
+  @include mat.core();
+  @include mat.all-component-themes($light-theme);
+
+  @media (prefers-color-scheme: dark) {
+    @include mat.all-component-colors($dark-theme);
+  }
+}
 
 .flex {
   display: flex;
@@ -49,10 +79,16 @@ body {
 }
 
 .app-wrapper {
-  margin: 2rem;
+  margin: vars.$spacing-md;
+
+  @media (max-width: vars.$breakpoint-mobile) {
+    margin: vars.$spacing-sm;
+  }
 }
 
 body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
+  background-color: var(--mat-app-background-color);
+  color: var(--mat-app-text-color);
 }

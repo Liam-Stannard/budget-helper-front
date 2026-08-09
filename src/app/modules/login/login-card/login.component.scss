@@ -1,6 +1,12 @@
+@use "../../../../styles/variables" as vars;
+
 .login {
   max-width: 30rem;
-  margin: 6rem auto 8.1rem auto;
+  margin: vars.$spacing-lg auto vars.$spacing-lg auto;
+
+  @media (max-width: vars.$breakpoint-mobile) {
+    margin: vars.$spacing-sm auto;
+  }
 }
 
 .login-title {

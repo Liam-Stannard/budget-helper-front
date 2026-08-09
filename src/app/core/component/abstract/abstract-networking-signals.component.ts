@@ -31,11 +31,13 @@ export abstract class AbstractNetworkingSignalComponent<T, Y>
   }
 
   override ngOnInit(): void {
-    this.loading = true;
     super.ngOnInit();
 
     if (this.shouldGetData) {
+      this.loading.set(true);
       this.getData();
+    } else {
+      this.loading.set(false);
     }
   }
 
@@ -49,14 +51,14 @@ export abstract class AbstractNetworkingSignalComponent<T, Y>
       .subscribe({
         next: (response) => {
           this.data.set(response);
-          this.loading = false;
+          this.loading.set(false);
 
           if (this.executeGetDataEffects) {
             this.executeGetDataEffects();
           }
         },
         error: (err) => {
-          this.loading = false;
+          this.loading.set(false);
           this.error.set(err?.message ?? 'Failed to load data');
         },
       });

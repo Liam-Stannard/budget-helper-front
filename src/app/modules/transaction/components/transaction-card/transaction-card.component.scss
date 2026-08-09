@@ -1,10 +1,12 @@
+@use "../../../../../styles/variables" as vars;
+
 .transaction-card {
   max-width: 50rem;
-  margin: 6rem auto 8.1rem auto;
-}
+  margin: vars.$spacing-lg auto vars.$spacing-lg auto;
 
-.login-title {
-  padding: 16px;
+  @media (max-width: vars.$breakpoint-mobile) {
+    margin: vars.$spacing-sm auto;
+  }
 }
 
 mat-card-content {
@@ -13,4 +15,10 @@ mat-card-content {
 
 mat-form-field {
   width: 100%;
+}
+
+.wrap {
+  @media (max-width: vars.$breakpoint-mobile) {
+    flex-wrap: wrap;
+  }
 }

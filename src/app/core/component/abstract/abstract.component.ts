@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 @Component({
@@ -8,7 +8,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy {
   protected router: Router;
   protected route: ActivatedRoute;
   protected location: Location;
-  protected loading = false;
+  protected loading = signal(false);
 
   constructor() {
     this.router = inject(Router);
@@ -17,7 +17,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.loading = true;
+    this.loading.set(true);
   }
 
   ngOnDestroy(): void {}
