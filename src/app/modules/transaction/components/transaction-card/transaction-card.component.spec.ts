@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TransactionCardComponent } from '../../../../component/transaction/transaction-card/transaction-card.component';
+import { TransactionCardComponent } from './transaction-card.component';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import {
@@ -9,8 +9,8 @@ import {
 } from '../../../../../test/mockService';
 import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
-import { TransactionApiService } from '../api/transaction-api.service';
-import { AuthService } from '../../../service/auth/auth.service';
+import { TransactionApiService } from '../../api/transaction-api.service';
+import { AuthService } from '../../../../core/auth/auth.service';
 
 describe('TransactionCardComponent', () => {
   let component: TransactionCardComponent;

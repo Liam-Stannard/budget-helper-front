@@ -2,10 +2,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { MockAuthService } from '../../../test/mockService';
+import { MockAuthService } from '../../../../test/mockService';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
-import { AuthService } from '../../core/auth/auth.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { NavComponent } from './nav.component';
 
 describe('NavComponent', () => {
