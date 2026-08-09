@@ -4,11 +4,11 @@ import {
   IGetTransactionResponse,
   IGetTransactionListResponse,
   ITransaction,
-} from '../app/component/transaction/api/interfaces/transaction.interface';
+} from '../app/modules/transaction/api/interfaces/transaction.interface';
 import {
   HttpResult,
   TransactionApiService,
-} from '../app/component/transaction/api/transaction-api.service';
+} from '../app/modules/transaction/api/transaction-api.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 const transaction1: ITransaction = {

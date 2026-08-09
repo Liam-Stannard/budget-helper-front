@@ -19,10 +19,10 @@ Tests use Jest with `jest-preset-angular` (not Karma, despite what the generated
 
 This is an Angular 18 standalone-components app (no `bootstrapModule`/root `NgModule` — see `src/main.ts` and `src/app/app.config.ts`). It is mid-migration from an older `NgModule`-per-feature layout to a `modules/`-based structure; both patterns currently coexist:
 
-- `src/app/core/` — singleton app-wide concerns: `auth/` (service, guard, interceptor, constants, interfaces). Registered via `provideHttpClient(withInterceptors([authInterceptor]))` and `authGuard()` in `app.config.ts` / `app.routes.ts`.
+- `src/app/core/` — singleton app-wide concerns: `auth/` (service, guard, interceptor, constants, interfaces) and `component/abstract/` (base component classes, below). Registered via `provideHttpClient(withInterceptors([authInterceptor]))` and `authGuard()` in `app.config.ts` / `app.routes.ts`.
 - `src/app/modules/` — feature areas, each with its own `api/`, `components/`, and `shared/` (interfaces/types/constants) subfolders, e.g. `modules/transaction/`, `modules/login/`. The `*.module.ts` files here (`TransactionModule`, etc.) are currently empty/unused vestiges — components are standalone and wired directly into `app.routes.ts`.
 - `src/app/shared/` — cross-feature reusable pieces: shared components (`nav`), interfaces, regex helpers, form validators.
-- `src/app/temp/component/abstract/` — base classes actively extended by feature components, despite the "temp" name:
+- `src/app/core/component/abstract/` — base classes extended by feature components:
   - `AbstractComponent` — injects `Router`/`Location`/`ActivatedRoute`, exposes `navigate()`/`back()`/`loading`.
   - `AbstractNetworkingComponent<T, Y>` — RxJS `Observable`-based GET-on-init + submit pattern built on top of `AbstractComponent`.
   - `AbstractNetworkingSignalComponent<T, Y>` — signal-based variant of the same pattern (the direction new networking components are moving toward).
