@@ -1,3 +1,4 @@
+<mat-card class="chart-card">
 @if (data.length > 0) {
 <div class="chart">
   @for (item of data; track item.category) {
@@ -6,15 +7,31 @@
     <div class="bar-track">
       <div
         class="bar"
+        tabindex="0"
+        role="img"
+        [attr.aria-label]="ariaLabel(item)"
         [style.width.%]="widthPercent(item.amount)"
         [style.background-color]="colorVar(item.category)"
-        [title]="label(item.category) + ': ' + (item.amount | currency)"
-      ></div>
+      >
+        <span class="tooltip" aria-hidden="true">
+          <strong>{{ item.amount | currency }}</strong>
+          <span class="tooltip-meta"
+            >{{ label(item.category) }} ·
+            {{ percentOfTotal(item.amount) | number: '1.0-0' }}%</span
+          >
+        </span>
+      </div>
     </div>
-    <span class="row-value">{{ item.amount | currency }}</span>
+    <span class="row-value">
+      {{ item.amount | currency }}
+      <span class="row-percent"
+        >{{ percentOfTotal(item.amount) | number: '1.0-0' }}%</span
+      >
+    </span>
   </div>
   }
 </div>
 } @else {
 <p class="empty-state">No transactions yet.</p>
 }
+</mat-card>
