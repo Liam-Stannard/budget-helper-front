@@ -101,6 +101,9 @@ export class TransactionCardComponent
       next: (res) => {
         this.accounts.set(res.accountList);
       },
+      error: (err) => {
+        this.errorNotifier.notify('Failed to load accounts', err);
+      },
     });
   }
 

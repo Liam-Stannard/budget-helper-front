@@ -4,6 +4,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { ActivatedRoute, provideRouter } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { throwError } from 'rxjs';
 import dayjs from 'dayjs';
 import { HomeComponent } from './home.component';
 import { MockApiService, MockAuthService } from '../../../test/mockService';
@@ -64,6 +66,28 @@ describe('HomeComponent', () => {
 
   it('should set loading to false once the transaction list resolves', () => {
     expect(component['loading']()).toBe(false);
+  });
+
+  describe('when the transaction list fails to load', () => {
+    it('should stop the spinner and notify the user', () => {
+      const transactionApiService = TestBed.inject(
+        TransactionApiService
+      ) as unknown as MockApiService;
+      const snackBar = TestBed.inject(MatSnackBar);
+      const snackBarSpy = jest.spyOn(snackBar, 'open').mockImplementation();
+      transactionApiService.getTransactionList.mockReturnValueOnce(
+        throwError(() => new Error('network down'))
+      );
+
+      component['getData']();
+
+      expect(component['loading']()).toBe(false);
+      expect(snackBarSpy).toHaveBeenCalledWith(
+        'Failed to load transactions',
+        'Dismiss',
+        expect.any(Object)
+      );
+    });
   });
 
   it('should compute the category breakdown across all transactions', () => {

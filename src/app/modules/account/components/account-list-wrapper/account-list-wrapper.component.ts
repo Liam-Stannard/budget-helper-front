@@ -55,6 +55,9 @@ export class AccountListWrapperComponent
         this.data.set(res.accountList);
         this.loading.set(false);
       },
+      error: (err) => {
+        this.handleError('Failed to load accounts', err);
+      },
     });
   }
 
@@ -104,10 +107,9 @@ export class AccountListWrapperComponent
           this.getData();
         },
         error: (err) => {
-          this.snackBar.open(
-            err?.error?.message ?? `Delete account failed for ${account.name}`,
-            'Dismiss',
-            { duration: 3000 }
+          this.errorNotifier.notify(
+            `Delete account failed for ${account.name}`,
+            err
           );
         },
       });

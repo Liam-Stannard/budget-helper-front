@@ -23,7 +23,6 @@ export abstract class AbstractNetworkingSignalComponent<T, Y>
   private destroyRef = inject(DestroyRef);
 
   protected data = signal<T | undefined>(undefined);
-  protected error = signal<string | undefined>(undefined);
   protected shouldGetData: boolean = true;
 
   constructor() {
@@ -58,8 +57,7 @@ export abstract class AbstractNetworkingSignalComponent<T, Y>
           }
         },
         error: (err) => {
-          this.loading.set(false);
-          this.error.set(err?.message ?? 'Failed to load data');
+          this.handleError('Failed to load data', err);
         },
       });
   }
@@ -82,7 +80,7 @@ export abstract class AbstractNetworkingSignalComponent<T, Y>
           this.back();
         },
         error: (err) => {
-          console.error(`Error - ${err}`);
+          this.handleError('Failed to save', err);
         },
       });
   }

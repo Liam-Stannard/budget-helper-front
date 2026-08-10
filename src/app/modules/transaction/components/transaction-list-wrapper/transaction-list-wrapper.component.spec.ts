@@ -93,6 +93,24 @@ describe('TransactionListWrapperComponent', () => {
     });
   });
 
+  describe('when getTransactionList fails', () => {
+    it('should stop the spinner and notify the user', () => {
+      const snackBarSpy = jest.spyOn(snackBar, 'open').mockImplementation();
+      transactionApiService.getTransactionList.mockReturnValueOnce(
+        throwError(() => new Error('network down'))
+      );
+
+      component['getData']();
+
+      expect(component['loading']()).toBe(false);
+      expect(snackBarSpy).toHaveBeenCalledWith(
+        'Failed to load transactions',
+        'Dismiss',
+        expect.any(Object)
+      );
+    });
+  });
+
   describe('edit', () => {
     it('should navigate to the edit route for the transaction', () => {
       const navigateSpy = jest

@@ -4,6 +4,8 @@ import { AccountCardComponent } from './account-card.component';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { throwError } from 'rxjs';
 import {
   MockAccountApiService,
   MockAuthService,
@@ -104,6 +106,48 @@ describe('AccountCardComponent', () => {
 
     it('should load the account name into the form', () => {
       expect(component['form'].controls.name.value).toBe('Main');
+    });
+
+    describe('when getAccount fails', () => {
+      it('should stop the spinner and notify the user', () => {
+        const snackBar = TestBed.inject(MatSnackBar);
+        const snackBarSpy = jest.spyOn(snackBar, 'open').mockImplementation();
+        accountApiService.getAccount.mockReturnValueOnce(
+          throwError(() => new Error('network down'))
+        );
+
+        component['getData']();
+
+        expect(component['loading']()).toBe(false);
+        expect(snackBarSpy).toHaveBeenCalledWith(
+          'Failed to load data',
+          'Dismiss',
+          expect.any(Object)
+        );
+      });
+    });
+
+    describe('when submit fails', () => {
+      it('should notify the user without navigating away', () => {
+        const snackBar = TestBed.inject(MatSnackBar);
+        const snackBarSpy = jest.spyOn(snackBar, 'open').mockImplementation();
+        const backSpy = jest
+          .spyOn(component as any, 'back')
+          .mockImplementation();
+        accountApiService.putAccount.mockReturnValueOnce(
+          throwError(() => new Error('network down'))
+        );
+        component['form'].controls.name.setValue('Updated');
+
+        component['submit']();
+
+        expect(snackBarSpy).toHaveBeenCalledWith(
+          'Failed to save',
+          'Dismiss',
+          expect.any(Object)
+        );
+        expect(backSpy).not.toHaveBeenCalled();
+      });
     });
   });
 });

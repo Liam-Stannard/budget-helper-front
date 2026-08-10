@@ -112,6 +112,9 @@ export class HomeComponent
         this.transactions.set(res.transactionList);
         this.loading.set(false);
       },
+      error: (err) => {
+        this.handleError('Failed to load transactions', err);
+      },
     });
   }
 }

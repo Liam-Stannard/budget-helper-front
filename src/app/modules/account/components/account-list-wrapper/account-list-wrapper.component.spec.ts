@@ -86,6 +86,24 @@ describe('AccountListWrapperComponent', () => {
     });
   });
 
+  describe('when getAccountList fails', () => {
+    it('should stop the spinner and notify the user', () => {
+      const snackBarSpy = jest.spyOn(snackBar, 'open').mockImplementation();
+      accountApiService.getAccountList.mockReturnValueOnce(
+        throwError(() => new Error('network down'))
+      );
+
+      component['getData']();
+
+      expect(component['loading']()).toBe(false);
+      expect(snackBarSpy).toHaveBeenCalledWith(
+        'Failed to load accounts',
+        'Dismiss',
+        expect.any(Object)
+      );
+    });
+  });
+
   describe('edit', () => {
     it('should navigate to the edit route for the account', () => {
       const navigateSpy = jest

@@ -21,6 +21,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ILoginForm } from './login.interface';
 import { AuthService } from '../../../core/auth/auth.service';
 import { IAuthenticateRequest } from '../../../core/auth/interfaces/authenticate.interface';
+import { ErrorNotificationService } from '../../../core/services/error-notification.service';
 
 @Component({
   selector: 'app-login',
@@ -44,7 +45,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   constructor(
     protected authService: AuthService,
     protected fb: FormBuilder,
-    protected router: Router
+    protected router: Router,
+    private errorNotifier: ErrorNotificationService
   ) {}
 
   ngOnInit(): void {
@@ -77,7 +79,7 @@ export class LoginComponent implements OnInit, OnDestroy {
             this.router.navigate(['home']);
           },
           error: (err) => {
-            console.error('Login Failed', err);
+            this.errorNotifier.notify('Invalid username or password', err);
           },
         });
     }

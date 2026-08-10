@@ -55,6 +55,9 @@ export class TransactionListWrapperComponent
         this.data.set(res.transactionList);
         this.loading.set(false);
       },
+      error: (err) => {
+        this.handleError('Failed to load transactions', err);
+      },
     });
   }
 
@@ -111,11 +114,10 @@ export class TransactionListWrapperComponent
           );
           this.getData();
         },
-        error: () => {
-          this.snackBar.open(
+        error: (err) => {
+          this.errorNotifier.notify(
             `Delete transaction failed for ${transaction.title}`,
-            'Dismiss',
-            { duration: 3000 }
+            err
           );
         },
       });
