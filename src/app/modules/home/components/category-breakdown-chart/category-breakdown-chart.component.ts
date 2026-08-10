@@ -10,6 +10,10 @@ const COLOR_VAR: Record<Category, string> = {
   BILL: 'var(--series-bill)',
   SUBSCRIPTION: 'var(--series-subscription)',
   CLOTHING: 'var(--series-clothing)',
+  // Unused today — INCOME is filtered out of the spend-only breakdown this chart renders (see
+  // home.utils.ts's filterExpenses) — but kept validated and in step with the rest of the
+  // palette in case a future chart needs it.
+  INCOME: 'var(--series-income)',
 };
 
 @Component({

@@ -32,6 +32,12 @@ export function currentAndPreviousMonthRange(): { from: string; to: string } {
   };
 }
 
+/** Excludes INCOME transactions — the stat tiles and category breakdown are meant to answer
+ * "how much did I spend," and an income transaction isn't spend. */
+export function filterExpenses(transactions: ITransaction[]): ITransaction[] {
+  return transactions.filter((transaction) => transaction.category !== 'INCOME');
+}
+
 export function getTotalAmount(transactions: ITransaction[]): number {
   return transactions.reduce(
     (total, transaction) => total + Number(transaction.amount),

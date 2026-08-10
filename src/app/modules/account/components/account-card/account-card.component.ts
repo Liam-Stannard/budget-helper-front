@@ -13,7 +13,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Mode, APP_CONSTANTS } from '../../../../app.constants';
-import { freeTextValidator } from '../../../../shared/validators/validator';
+import {
+  freeTextValidator,
+  moneyValidator,
+} from '../../../../shared/validators/validator';
 import { AccountApiService } from '../../api/account-api.service';
 import {
   IGetAccountResponse,
@@ -85,6 +88,10 @@ export class AccountCardComponent
         Validators.required,
         freeTextValidator,
       ]),
+      startingBalance: this.fb.nonNullable.control('0.00', [
+        Validators.required,
+        moneyValidator,
+      ]),
     });
   }
 
@@ -127,12 +134,18 @@ export class AccountCardComponent
 
     return {
       name: response.account.name,
+      // The backend returns a DECIMAL(19,4) string (e.g. "500.0000"); moneyValidator only
+      // accepts exactly 2 decimal places, so this needs reformatting rather than passing the
+      // raw value straight into the form.
+      startingBalance: Number(response.account.startingBalance ?? 0).toFixed(
+        2
+      ),
     };
   }
 
   protected createPutRequest(): IAccount {
     const formValues = this.form.getRawValue();
-    if (!formValues.name) {
+    if (!formValues.name || !formValues.startingBalance) {
       throw Error(`Required form value is undefined - ${formValues}`);
     }
 
@@ -143,17 +156,19 @@ export class AccountCardComponent
     return {
       id: Number(this.id),
       name: formValues.name,
+      startingBalance: formValues.startingBalance,
     };
   }
 
   protected createPostRequest(): IAccount {
     const formValues = this.form.getRawValue();
-    if (!formValues.name) {
+    if (!formValues.name || !formValues.startingBalance) {
       throw Error(`Required form value is undefined - ${formValues}`);
     }
 
     return {
       name: formValues.name,
+      startingBalance: formValues.startingBalance,
     };
   }
 }

@@ -18,4 +18,8 @@ export const CATEGORY_OPTIONS: MenuOption<string, Category>[] = [
     view: 'Clothing',
     value: 'CLOTHING',
   },
+  {
+    view: 'Income',
+    value: 'INCOME',
+  },
 ];

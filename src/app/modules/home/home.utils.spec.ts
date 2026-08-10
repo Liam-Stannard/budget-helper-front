@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import { ITransaction } from '../transaction/shared/transaction.interface';
 import {
   filterCurrentMonth,
+  filterExpenses,
   filterPreviousMonth,
   getMonthOverMonthDelta,
   getTopCategory,
@@ -69,6 +70,30 @@ describe('home.utils', () => {
       });
 
       expect(filterPreviousMonth([transaction])).toEqual([]);
+    });
+  });
+
+  describe('filterExpenses', () => {
+    it('should return an empty array for an empty list', () => {
+      expect(filterExpenses([])).toEqual([]);
+    });
+
+    it('should drop INCOME transactions', () => {
+      const income = makeTransaction({ category: 'INCOME', amount: '500.00' });
+      const expense = makeTransaction({ category: 'FOOD', amount: '10.00' });
+
+      expect(filterExpenses([income, expense])).toEqual([expense]);
+    });
+
+    it('should keep every non-INCOME category', () => {
+      const transactions = [
+        makeTransaction({ category: 'FOOD' }),
+        makeTransaction({ category: 'BILL' }),
+        makeTransaction({ category: 'SUBSCRIPTION' }),
+        makeTransaction({ category: 'CLOTHING' }),
+      ];
+
+      expect(filterExpenses(transactions)).toEqual(transactions);
     });
   });
 

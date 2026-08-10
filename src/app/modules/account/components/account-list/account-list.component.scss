@@ -1,5 +1,24 @@
+:host {
+  --balance-negative: #d03b3b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    --balance-negative: #e66767;
+  }
+}
+
 .account-table {
   padding-bottom: 1rem;
+}
+
+.mat-column-col-balance {
+  text-align: right;
+}
+
+td.negative {
+  color: var(--balance-negative);
+  font-weight: 600;
 }
 
 .table-scroll {

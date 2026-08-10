@@ -79,4 +79,44 @@ describe('AccountListComponent', () => {
       expect(emitSpy).toHaveBeenCalledWith(action);
     });
   });
+
+  describe('isNegative', () => {
+    it('should be true for a negative balance', () => {
+      expect(component['isNegative']('-40.0000')).toBe(true);
+    });
+
+    it('should be false for a positive balance', () => {
+      expect(component['isNegative']('40.0000')).toBe(false);
+    });
+
+    it('should be false for a zero balance', () => {
+      expect(component['isNegative']('0.0000')).toBe(false);
+    });
+
+    it('should be false when balance is undefined', () => {
+      expect(component['isNegative'](undefined)).toBe(false);
+    });
+  });
+
+  describe('sortingDataAccessor', () => {
+    it('should sort currentBalance numerically, not lexicographically', () => {
+      const accounts: IAccount[] = [
+        { id: 1, name: 'A', currentBalance: '9.0000' },
+        { id: 2, name: 'B', currentBalance: '-40.0000' },
+        { id: 3, name: 'C', currentBalance: '100.0000' },
+      ];
+
+      const sorted = [...accounts].sort(
+        (a, b) =>
+          Number(
+            component['dataSource'].sortingDataAccessor(a, 'currentBalance')
+          ) -
+          Number(
+            component['dataSource'].sortingDataAccessor(b, 'currentBalance')
+          )
+      );
+
+      expect(sorted.map((a) => a.name)).toEqual(['B', 'A', 'C']);
+    });
+  });
 });

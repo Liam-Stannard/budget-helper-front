@@ -30,6 +30,25 @@
         }
       </mat-form-field>
 
+      <mat-form-field appearance="outline">
+        <mat-label>Starting balance</mat-label>
+        <span matTextPrefix>£&nbsp;</span>
+        <input
+          matInput
+          type="text"
+          id="startingBalance"
+          name="startingBalance"
+          [formControl]="form.controls.startingBalance"
+          minlength="1"
+          maxlength="32"
+        />
+        @if (form.controls.startingBalance.hasError('required')) {
+        <mat-error>Starting balance is required</mat-error>
+        } @else if (form.controls.startingBalance.hasError('pattern')) {
+        <mat-error>Enter a valid amount (e.g. 12.34)</mat-error>
+        }
+      </mat-form-field>
+
       <mat-card-actions class="flex flex-row-end gap-20">
         <button mat-button type="button" (click)="back()">Cancel</button>
         <button

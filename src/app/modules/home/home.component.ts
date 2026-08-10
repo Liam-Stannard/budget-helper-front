@@ -10,6 +10,7 @@ import { CategoryBreakdownChartComponent } from './components/category-breakdown
 import {
   currentAndPreviousMonthRange,
   filterCurrentMonth,
+  filterExpenses,
   filterPreviousMonth,
   getMonthOverMonthDelta,
   getTopCategory,
@@ -41,7 +42,7 @@ export class HomeComponent
   );
 
   protected totalThisMonth = computed(() =>
-    getTotalAmount(this.currentMonthTransactions())
+    getTotalAmount(filterExpenses(this.currentMonthTransactions()))
   );
 
   protected countThisMonth = computed(
@@ -53,7 +54,7 @@ export class HomeComponent
   );
 
   protected totalLastMonth = computed(() =>
-    getTotalAmount(this.previousMonthTransactions())
+    getTotalAmount(filterExpenses(this.previousMonthTransactions()))
   );
 
   protected monthDelta = computed(() =>
@@ -77,7 +78,7 @@ export class HomeComponent
   });
 
   protected breakdown = computed(() =>
-    sumByCategory(this.currentMonthTransactions())
+    sumByCategory(filterExpenses(this.currentMonthTransactions()))
   );
 
   protected topCategoryLabel = computed(() => {

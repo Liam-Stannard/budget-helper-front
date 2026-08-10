@@ -5,7 +5,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import {
   MockAccountApiService,
   MockAuthService,
@@ -57,6 +57,20 @@ describe('AccountCardComponent', () => {
     it('should not fetch data', () => {
       expect(component['shouldGetData']).toBe(false);
     });
+
+    it('should default the starting balance to 0.00', () => {
+      expect(component['form'].controls.startingBalance.value).toBe('0.00');
+    });
+
+    it('should include the starting balance in the create payload', () => {
+      component['form'].controls.name.setValue('New Account');
+      component['form'].controls.startingBalance.setValue('250.00');
+
+      expect(component['createPostRequest']()).toEqual({
+        name: 'New Account',
+        startingBalance: '250.00',
+      });
+    });
   });
 
   describe('edit mode', () => {
@@ -106,6 +120,36 @@ describe('AccountCardComponent', () => {
 
     it('should load the account name into the form', () => {
       expect(component['form'].controls.name.value).toBe('Main');
+    });
+
+    it('should reformat the starting balance to 2 decimal places', () => {
+      accountApiService.getAccount.mockReturnValueOnce(
+        of({
+          account: {
+            id: 1,
+            name: 'Main',
+            startingBalance: '500.0000',
+            currentBalance: '450.0000',
+          },
+        })
+      );
+
+      component['getData']();
+
+      expect(component['form'].controls.startingBalance.value).toBe(
+        '500.00'
+      );
+    });
+
+    it('should include the starting balance in the update payload', () => {
+      component['form'].controls.name.setValue('Renamed');
+      component['form'].controls.startingBalance.setValue('75.50');
+
+      expect(component['createPutRequest']()).toEqual({
+        id: 1,
+        name: 'Renamed',
+        startingBalance: '75.50',
+      });
     });
 
     describe('when getAccount fails', () => {

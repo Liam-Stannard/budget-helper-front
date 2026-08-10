@@ -49,6 +49,13 @@ export class AccountListComponent implements OnChanges, AfterViewInit {
   protected columns: string[] = ACCOUNT_LIST_TABLE_COLUMNS;
   protected dataSource = new MatTableDataSource<IAccount>([]);
 
+  constructor() {
+    this.dataSource.sortingDataAccessor = (item, property) =>
+      property === 'currentBalance'
+        ? Number(item.currentBalance ?? 0)
+        : (item as unknown as Record<string, string>)[property];
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['tableData']) {
       this.dataSource.data = this.tableData;
@@ -62,5 +69,9 @@ export class AccountListComponent implements OnChanges, AfterViewInit {
 
   protected onClickEmitAction(action: IMatMenuButtonActionEvent<IAccount>) {
     this.actionTriggered.emit(action);
+  }
+
+  protected isNegative(balance: string | undefined): boolean {
+    return Number(balance ?? 0) < 0;
   }
 }

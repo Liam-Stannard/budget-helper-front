@@ -112,6 +112,30 @@ describe('HomeComponent', () => {
     });
   });
 
+  describe('with a current-month income transaction', () => {
+    beforeEach(() => {
+      component['transactions'].set([
+        makeTransaction({ category: 'FOOD', amount: '10.00' }),
+        makeTransaction({ category: 'INCOME', amount: '500.00' }),
+      ]);
+      fixture.detectChanges();
+    });
+
+    it('should not count income toward "Total this month"', () => {
+      expect(component['totalThisMonth']()).toBe(10);
+    });
+
+    it('should not include income in the category breakdown', () => {
+      expect(component['breakdown']()).toEqual([
+        { category: 'FOOD', amount: 10 },
+      ]);
+    });
+
+    it('should still count the income transaction toward the transaction count', () => {
+      expect(component['countThisMonth']()).toBe(2);
+    });
+  });
+
   it('should exclude transactions from a different month from "this month" stats', () => {
     // the mock transaction is dated 2020-01-01
     expect(component['totalThisMonth']()).toBe(0);
