@@ -12,6 +12,20 @@ export type ITransaction = {
 
 export type IGetTransactionListResponse = {
   transactionList: ITransaction[];
+  totalElements: number;
+  totalPages: number;
+};
+
+export type ITransactionListParams = {
+  /** Inclusive lower bound on `date`, `YYYY-MM-DD`. Omit for unbounded. */
+  from?: string;
+  /** Inclusive upper bound on `date`, `YYYY-MM-DD`. Omit for unbounded. */
+  to?: string;
+  /** 0-based. */
+  page?: number;
+  size?: number;
+  /** `"<field>,<direction>"`, e.g. `"date,desc"`. */
+  sort?: string;
 };
 export type IGetTransactionResponse = {
   transaction: ITransaction;

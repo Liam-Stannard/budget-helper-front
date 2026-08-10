@@ -23,37 +23,63 @@ describe('ApiService', () => {
     expect(service).toBeTruthy();
   });
 
-  /*
-  describe('getTransactions', () => {
-    const getTransactionResponse: IGetTransactionsResponse = {
-      transactions: [
-        {
-          id: 1,
-          account: 'test',
-          amount: '100.00',
-          title: 'test',
-          category: 'FOOD',
-          date: '2020-01-01',
-        },
-      ],
-    };
+  describe('getTransactionList', () => {
+    let httpTestingController: HttpTestingController;
 
-    service.getTransactions();
+    beforeEach(() => {
+      httpTestingController = TestBed.inject(HttpTestingController);
+    });
 
-    const req = httpTestingController.expectOne('/api/transactions');
+    it('should request with no query params when none are given', () => {
+      service.getTransactionList().subscribe();
 
-    expect(req.request.method).toEqual('GET');
+      const req = httpTestingController.expectOne(
+        (r) => r.url === '/api/v1/transaction'
+      );
+      expect(req.request.method).toEqual('GET');
+      expect(req.request.params.keys().length).toBe(0);
+      req.flush({ transactionList: [], totalElements: 0, totalPages: 0 });
 
-    req.flush(getTransactionResponse);
+      httpTestingController.verify();
+    });
 
-    expect(service.getTransactionsResponseSignal()).toEqual(
-      getTransactionResponse
-    );
+    it('should only include the params that were provided', () => {
+      service
+        .getTransactionList({
+          from: '2026-03-01',
+          to: '2026-03-31',
+          page: 1,
+          size: 10,
+          sort: 'date,desc',
+        })
+        .subscribe();
 
-    // Finally, assert that there are no outstanding requests.
-    httpTestingController.verify();
+      const req = httpTestingController.expectOne(
+        (r) => r.url === '/api/v1/transaction'
+      );
+      expect(req.request.params.get('from')).toBe('2026-03-01');
+      expect(req.request.params.get('to')).toBe('2026-03-31');
+      expect(req.request.params.get('page')).toBe('1');
+      expect(req.request.params.get('size')).toBe('10');
+      expect(req.request.params.get('sort')).toBe('date,desc');
+      req.flush({ transactionList: [], totalElements: 0, totalPages: 0 });
+
+      httpTestingController.verify();
+    });
+
+    it('should include page 0 rather than omitting it', () => {
+      service.getTransactionList({ page: 0 }).subscribe();
+
+      const req = httpTestingController.expectOne(
+        (r) => r.url === '/api/v1/transaction'
+      );
+      expect(req.request.params.get('page')).toBe('0');
+      req.flush({ transactionList: [], totalElements: 0, totalPages: 0 });
+
+      httpTestingController.verify();
+    });
   });
-  */
+
   describe('getTransaction', () => {});
   describe('deleteTransaction', () => {});
   describe('putTransaction', () => {});

@@ -1,7 +1,15 @@
 <div class="transaction-table">
   @if (tableData.length > 0) {
   <div class="table-scroll">
-    <table mat-table matSort [dataSource]="dataSource">
+    <table
+      mat-table
+      matSort
+      [matSortActive]="sortActive"
+      [matSortDirection]="sortDirection"
+      matSortDisableClear
+      (matSortChange)="onSort($event)"
+      [dataSource]="dataSource"
+    >
       <ng-container matColumnDef="col-title">
         <th mat-header-cell mat-sort-header="title" *matHeaderCellDef>
           Title
@@ -86,8 +94,12 @@
   </div>
 
   <mat-paginator
+    [length]="totalElements"
+    [pageIndex]="pageIndex"
+    [pageSize]="pageSize"
     [pageSizeOptions]="[5, 10, 25]"
     showFirstLastButtons
+    (page)="onPage($event)"
   ></mat-paginator>
   } @else {
   <p class="empty-state">No transactions yet.</p>

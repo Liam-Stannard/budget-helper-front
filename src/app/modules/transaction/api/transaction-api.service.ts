@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
@@ -10,6 +10,7 @@ import {
   IGetTransactionResponse,
   IGetTransactionListResponse,
   IPostPutTransactionResponse,
+  ITransactionListParams,
 } from '../shared/transaction.interface';
 
 @Injectable({
@@ -18,9 +19,29 @@ import {
 export class TransactionApiService {
   constructor(private httpClient: HttpClient) {}
 
-  getTransactionList(): Observable<IGetTransactionListResponse> {
+  getTransactionList(
+    params: ITransactionListParams = {}
+  ): Observable<IGetTransactionListResponse> {
+    let httpParams = new HttpParams();
+    if (params.from) {
+      httpParams = httpParams.set('from', params.from);
+    }
+    if (params.to) {
+      httpParams = httpParams.set('to', params.to);
+    }
+    if (params.page !== undefined) {
+      httpParams = httpParams.set('page', params.page);
+    }
+    if (params.size !== undefined) {
+      httpParams = httpParams.set('size', params.size);
+    }
+    if (params.sort) {
+      httpParams = httpParams.set('sort', params.sort);
+    }
+
     return this.httpClient.get<IGetTransactionListResponse>(
-      `${URL_TRANSACTION_BASE}`
+      `${URL_TRANSACTION_BASE}`,
+      { params: httpParams }
     );
   }
 

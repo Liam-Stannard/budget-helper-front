@@ -3,3 +3,22 @@
   bottom: 24px;
   right: 24px;
 }
+
+.period-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.period-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.period-label {
+  min-width: 10rem;
+}

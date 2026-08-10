@@ -8,6 +8,7 @@ import { CATEGORY_OPTIONS } from '../transaction/shared/transcations.constants';
 import { StatTileComponent } from './components/stat-tile/stat-tile.component';
 import { CategoryBreakdownChartComponent } from './components/category-breakdown-chart/category-breakdown-chart.component';
 import {
+  currentAndPreviousMonthRange,
   filterCurrentMonth,
   filterPreviousMonth,
   getMonthOverMonthDelta,
@@ -75,7 +76,9 @@ export class HomeComponent
     return `${arrow} ${amount} (${percent}%) vs last month`;
   });
 
-  protected breakdown = computed(() => sumByCategory(this.transactions()));
+  protected breakdown = computed(() =>
+    sumByCategory(this.currentMonthTransactions())
+  );
 
   protected topCategoryLabel = computed(() => {
     const top = getTopCategory(this.breakdown());
@@ -107,14 +110,18 @@ export class HomeComponent
   }
 
   protected getData(): void {
-    this.transactionApiService.getTransactionList().subscribe({
-      next: (res) => {
-        this.transactions.set(res.transactionList);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.handleError('Failed to load transactions', err);
-      },
-    });
+    const { from, to } = currentAndPreviousMonthRange();
+
+    this.transactionApiService
+      .getTransactionList({ from, to, size: 200 })
+      .subscribe({
+        next: (res) => {
+          this.transactions.set(res.transactionList);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.handleError('Failed to load transactions', err);
+        },
+      });
   }
 }

@@ -57,4 +57,50 @@ describe('TransactionListComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should update the data source when tableData changes', () => {
+    component.tableData = [transaction1];
+    component.ngOnChanges({
+      tableData: {
+        previousValue: [],
+        currentValue: [transaction1],
+        firstChange: false,
+        isFirstChange: () => false,
+      },
+    });
+
+    expect(component['dataSource'].data).toEqual([transaction1]);
+  });
+
+  it('should emit actionTriggered when a row action is clicked', () => {
+    const emitSpy = jest.spyOn(component.actionTriggered, 'emit');
+
+    component['onClickEmitAction']({
+      action: 'ACTION_EDIT',
+      item: transaction1,
+    });
+
+    expect(emitSpy).toHaveBeenCalledWith({
+      action: 'ACTION_EDIT',
+      item: transaction1,
+    });
+  });
+
+  it('should emit pageChanged when the paginator fires', () => {
+    const emitSpy = jest.spyOn(component.pageChanged, 'emit');
+    const event = { pageIndex: 1, pageSize: 25, length: 100 };
+
+    component['onPage'](event);
+
+    expect(emitSpy).toHaveBeenCalledWith(event);
+  });
+
+  it('should emit sortChanged when the sort header fires', () => {
+    const emitSpy = jest.spyOn(component.sortChanged, 'emit');
+    const sort = { active: 'amount', direction: 'asc' as const };
+
+    component['onSort'](sort);
+
+    expect(emitSpy).toHaveBeenCalledWith(sort);
+  });
 });

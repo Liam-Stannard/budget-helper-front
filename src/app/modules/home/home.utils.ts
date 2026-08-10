@@ -23,6 +23,15 @@ export function filterPreviousMonth(
   );
 }
 
+/** The `from`/`to` bounds covering this month and last month, for scoping the home screen's
+ * transaction fetch — it only ever needs these two months' data. */
+export function currentAndPreviousMonthRange(): { from: string; to: string } {
+  return {
+    from: dayjs().subtract(1, 'month').startOf('month').format('YYYY-MM-DD'),
+    to: dayjs().endOf('month').format('YYYY-MM-DD'),
+  };
+}
+
 export function getTotalAmount(transactions: ITransaction[]): number {
   return transactions.reduce(
     (total, transaction) => total + Number(transaction.amount),

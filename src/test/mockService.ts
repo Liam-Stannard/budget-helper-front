@@ -29,6 +29,8 @@ const transaction1: ITransaction = {
 
 const getTransactionsResponse: IGetTransactionListResponse = {
   transactionList: [transaction1],
+  totalElements: 1,
+  totalPages: 1,
 };
 
 const getTransactionResponse: IGetTransactionResponse = {

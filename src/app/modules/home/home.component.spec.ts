@@ -90,12 +90,26 @@ describe('HomeComponent', () => {
     });
   });
 
-  it('should compute the category breakdown across all transactions', () => {
-    expect(component['breakdown']()).toEqual([{ category: 'FOOD', amount: 100 }]);
+  it('should not include transactions from a different month in the category breakdown', () => {
+    // the mock transaction is dated 2020-01-01, so it falls outside "this month"
+    expect(component['breakdown']()).toEqual([]);
   });
 
-  it('should report the top category label', () => {
-    expect(component['topCategoryLabel']()).toBe('Food');
+  describe('with a current-month transaction', () => {
+    beforeEach(() => {
+      component['transactions'].set([makeTransaction({ category: 'FOOD' })]);
+      fixture.detectChanges();
+    });
+
+    it('should compute the category breakdown for this month', () => {
+      expect(component['breakdown']()).toEqual([
+        { category: 'FOOD', amount: 10 },
+      ]);
+    });
+
+    it('should report the top category label', () => {
+      expect(component['topCategoryLabel']()).toBe('Food');
+    });
   });
 
   it('should exclude transactions from a different month from "this month" stats', () => {

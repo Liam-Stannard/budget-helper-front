@@ -3,9 +3,54 @@
   <mat-progress-bar mode="indeterminate" />
   }
 
+  <div class="period-toolbar">
+    <mat-button-toggle-group
+      [value]="period()"
+      (change)="setPeriod($event.value)"
+      aria-label="View by"
+    >
+      @for (option of periodOptions; track option.value) {
+      <mat-button-toggle [value]="option.value">{{
+        option.label
+      }}</mat-button-toggle>
+      }
+    </mat-button-toggle-group>
+
+    <div class="period-nav">
+      <button
+        mat-icon-button
+        aria-label="Previous period"
+        (click)="goToPreviousPeriod()"
+      >
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <button
+        mat-button
+        class="period-label"
+        (click)="goToToday()"
+      >
+        {{ periodLabel() }}
+      </button>
+      <button
+        mat-icon-button
+        aria-label="Next period"
+        (click)="goToNextPeriod()"
+      >
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  </div>
+
   <transaction-list
     [tableData]="data()"
+    [totalElements]="totalElements()"
+    [pageIndex]="pageIndex()"
+    [pageSize]="pageSize()"
+    [sortActive]="sortField()"
+    [sortDirection]="sortDirection()"
     (actionTriggered)="triggerAction($event)"
+    (pageChanged)="onPageChange($event)"
+    (sortChanged)="onSortChange($event)"
   />
 
   <button

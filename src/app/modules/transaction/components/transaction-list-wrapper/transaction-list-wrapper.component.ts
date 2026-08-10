@@ -1,4 +1,8 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, computed } from '@angular/core';
+import dayjs, { Dayjs } from 'dayjs';
+import { PageEvent } from '@angular/material/paginator';
+import { Sort } from '@angular/material/sort';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { APP_CONSTANTS } from '../../../../app.constants';
 import { IMatMenuButtonActionEvent } from '../transaction-list/transaction-list.interfaces';
 import { TransactionListComponent } from '../transaction-list/transaction-list.component';
@@ -12,6 +16,15 @@ import { AbstractComponent } from '../../../../core/component/abstract/abstract.
 import { TransactionApiService } from '../../api/transaction-api.service';
 import { ITransaction } from '../../shared/transaction.interface';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import {
+  formatPeriodLabel,
+  PERIOD_OPTIONS,
+  periodDateRange,
+  PeriodType,
+  shiftPeriod,
+} from './transaction-list-wrapper.utils';
+
+const DEFAULT_PAGE_SIZE = 10;
 
 @Component({
   selector: 'app-transaction-list-wrapper',
@@ -21,6 +34,7 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
     MatProgressBarModule,
     MatButtonModule,
     MatIconModule,
+    MatButtonToggleModule,
     TransactionListComponent,
   ],
   templateUrl: './transaction-list-wrapper.component.html',
@@ -31,6 +45,19 @@ export class TransactionListWrapperComponent
   implements OnInit, OnDestroy
 {
   protected data = signal<ITransaction[]>([]);
+  protected totalElements = signal(0);
+
+  protected periodOptions = PERIOD_OPTIONS;
+  protected period = signal<PeriodType>('month');
+  protected referenceDate = signal<Dayjs>(dayjs());
+  protected pageIndex = signal(0);
+  protected pageSize = signal(DEFAULT_PAGE_SIZE);
+  protected sortField = signal('date');
+  protected sortDirection = signal<'asc' | 'desc'>('desc');
+
+  protected periodLabel = computed(() =>
+    formatPeriodLabel(this.referenceDate(), this.period())
+  );
 
   constructor(
     private transactionApiService: TransactionApiService,
@@ -49,16 +76,71 @@ export class TransactionListWrapperComponent
     super.ngOnDestroy();
   }
 
+  protected setPeriod(period: PeriodType): void {
+    this.period.set(period);
+    this.referenceDate.set(dayjs());
+    this.pageIndex.set(0);
+    this.getData();
+  }
+
+  protected goToPreviousPeriod(): void {
+    this.referenceDate.update((date) =>
+      shiftPeriod(date, this.period(), -1)
+    );
+    this.pageIndex.set(0);
+    this.getData();
+  }
+
+  protected goToNextPeriod(): void {
+    this.referenceDate.update((date) => shiftPeriod(date, this.period(), 1));
+    this.pageIndex.set(0);
+    this.getData();
+  }
+
+  protected goToToday(): void {
+    this.referenceDate.set(dayjs());
+    this.pageIndex.set(0);
+    this.getData();
+  }
+
+  protected onPageChange(event: PageEvent): void {
+    this.pageIndex.set(event.pageIndex);
+    this.pageSize.set(event.pageSize);
+    this.getData();
+  }
+
+  protected onSortChange(sort: Sort): void {
+    if (!sort.direction) {
+      return;
+    }
+    this.sortField.set(sort.active);
+    this.sortDirection.set(sort.direction);
+    this.pageIndex.set(0);
+    this.getData();
+  }
+
   protected getData(): void {
-    this.transactionApiService.getTransactionList().subscribe({
-      next: (res) => {
-        this.data.set(res.transactionList);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.handleError('Failed to load transactions', err);
-      },
-    });
+    const { from, to } = periodDateRange(this.referenceDate(), this.period());
+
+    this.loading.set(true);
+    this.transactionApiService
+      .getTransactionList({
+        from,
+        to,
+        page: this.pageIndex(),
+        size: this.pageSize(),
+        sort: `${this.sortField()},${this.sortDirection()}`,
+      })
+      .subscribe({
+        next: (res) => {
+          this.data.set(res.transactionList);
+          this.totalElements.set(res.totalElements);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.handleError('Failed to load transactions', err);
+        },
+      });
   }
 
   protected triggerAction(

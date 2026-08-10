@@ -29,6 +29,8 @@ const transaction1: ITransaction = {
 
 const getTransactionsResponse: IGetTransactionListResponse = {
   transactionList: [transaction1],
+  totalElements: 1,
+  totalPages: 1,
 };
 
 describe('TransactionListWrapperComponent', () => {
@@ -82,14 +84,118 @@ describe('TransactionListWrapperComponent', () => {
       expect(transactionApiService.getTransactionList).toHaveBeenCalled();
     });
 
+    it('should default to the current month, page 0, and date desc', () => {
+      expect(transactionApiService.getTransactionList).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 0,
+          size: 10,
+          sort: 'date,desc',
+        })
+      );
+    });
+
     it('should set the data signal from the response', () => {
       expect(component['data']()).toEqual(
         getTransactionsResponse.transactionList
       );
     });
 
+    it('should set the totalElements signal from the response', () => {
+      expect(component['totalElements']()).toBe(
+        getTransactionsResponse.totalElements
+      );
+    });
+
     it('should set loading to false', () => {
       expect(component['loading']()).toBe(false);
+    });
+  });
+
+  describe('setPeriod', () => {
+    it('should refetch with the new period and reset to page 0', () => {
+      component['pageIndex'].set(2);
+      transactionApiService.getTransactionList.mockClear();
+
+      component['setPeriod']('week');
+
+      expect(component['period']()).toBe('week');
+      expect(component['pageIndex']()).toBe(0);
+      expect(transactionApiService.getTransactionList).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 0 })
+      );
+    });
+  });
+
+  describe('goToPreviousPeriod / goToNextPeriod', () => {
+    it('should move the reference date back and refetch', () => {
+      const before = component['referenceDate']();
+      transactionApiService.getTransactionList.mockClear();
+
+      component['goToPreviousPeriod']();
+
+      expect(component['referenceDate']().isBefore(before)).toBe(true);
+      expect(transactionApiService.getTransactionList).toHaveBeenCalled();
+    });
+
+    it('should move the reference date forward and refetch', () => {
+      const before = component['referenceDate']();
+      transactionApiService.getTransactionList.mockClear();
+
+      component['goToNextPeriod']();
+
+      expect(component['referenceDate']().isAfter(before)).toBe(true);
+      expect(transactionApiService.getTransactionList).toHaveBeenCalled();
+    });
+  });
+
+  describe('goToToday', () => {
+    it('should reset the reference date and page, then refetch', () => {
+      component['referenceDate'].set(component['referenceDate']().add(2, 'month'));
+      component['pageIndex'].set(3);
+      transactionApiService.getTransactionList.mockClear();
+
+      component['goToToday']();
+
+      expect(component['pageIndex']()).toBe(0);
+      expect(transactionApiService.getTransactionList).toHaveBeenCalled();
+    });
+  });
+
+  describe('onPageChange', () => {
+    it('should update page state and refetch', () => {
+      transactionApiService.getTransactionList.mockClear();
+
+      component['onPageChange']({ pageIndex: 2, pageSize: 25, length: 100 });
+
+      expect(component['pageIndex']()).toBe(2);
+      expect(component['pageSize']()).toBe(25);
+      expect(transactionApiService.getTransactionList).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 2, size: 25 })
+      );
+    });
+  });
+
+  describe('onSortChange', () => {
+    it('should update sort state, reset to page 0, and refetch', () => {
+      component['pageIndex'].set(1);
+      transactionApiService.getTransactionList.mockClear();
+
+      component['onSortChange']({ active: 'amount', direction: 'asc' });
+
+      expect(component['sortField']()).toBe('amount');
+      expect(component['sortDirection']()).toBe('asc');
+      expect(component['pageIndex']()).toBe(0);
+      expect(transactionApiService.getTransactionList).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 0, sort: 'amount,asc' })
+      );
+    });
+
+    it('should ignore a cleared sort instead of refetching', () => {
+      transactionApiService.getTransactionList.mockClear();
+
+      component['onSortChange']({ active: 'amount', direction: '' });
+
+      expect(transactionApiService.getTransactionList).not.toHaveBeenCalled();
     });
   });
 
