@@ -30,6 +30,7 @@ const getTransactionResponse: IGetTransactionResponse = {
 
 export class MockAuthService {
   authenticate = of(true);
+  register = of(true);
   isLoggedIn = jest.fn(() => true);
 }
 

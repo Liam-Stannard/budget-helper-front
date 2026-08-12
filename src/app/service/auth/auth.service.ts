@@ -28,10 +28,16 @@ export class AuthService {
   public register(
     registerRequest: IRegisterRequest
   ): Observable<IRegisterResponse> {
-    return this.httpClient.post<IRegisterResponse>(
-      URL_REGISTER,
-      registerRequest
-    );
+    return this.httpClient
+      .post<IRegisterResponse>(URL_REGISTER, registerRequest)
+      .pipe(
+        tap({
+          next: (response) => this.storeTokens(response),
+          error: (err) => {
+            alert('Registration failed, please try again');
+          },
+        })
+      );
   }
 
   public authenticate(

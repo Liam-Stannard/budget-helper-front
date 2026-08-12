@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NavComponent } from './nav.component';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { AuthService } from '../../../service/auth/auth.service';
+import { AuthService } from '../../service/auth/auth.service';
 import { MockAuthService } from '../../../test/mockService';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';

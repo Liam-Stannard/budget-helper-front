@@ -17,6 +17,11 @@
               <mat-icon>home</mat-icon>
               <span>Login</span>
             </button>
+
+            <button mat-menu-item routerLink="/register">
+              <mat-icon>person_add</mat-icon>
+              <span>Register</span>
+            </button>
           </div>
           <div *ngIf="authService.isLoggedIn()">
             <button mat-menu-item routerLink="/home">

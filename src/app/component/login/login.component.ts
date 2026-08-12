@@ -12,7 +12,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ILoginForm } from './interface/login.interface';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -26,6 +26,7 @@ import { IAuthenticateRequest } from '../../service/auth/interfaces/authenticate
   standalone: true,
   imports: [
     ReactiveFormsModule,
+    RouterModule,
     MatCardModule,
     MatButtonModule,
     MatFormFieldModule,

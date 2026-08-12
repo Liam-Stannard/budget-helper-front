@@ -1,4 +1,4 @@
-import { SelectOption } from '../../../../interface/interfaces';
+import { SelectOption } from '../../../interface/interfaces';
 import { Category } from '../type/transaction.type';
 
 export const CATEGORY_OPTIONS: SelectOption<string, Category>[] = [

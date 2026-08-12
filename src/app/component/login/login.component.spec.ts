@@ -2,8 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { LoginComponent } from './login.component';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { AuthService } from '../../../service/auth/auth.service';
-import { of } from 'rxjs';
+import { AuthService } from '../../service/auth/auth.service';
+import { provideRouter } from '@angular/router';
 import { MockAuthService } from '../../../test/mockService';
 
 describe('LoginComponent', () => {
@@ -16,6 +16,7 @@ describe('LoginComponent', () => {
       providers: [
         provideAnimationsAsync(),
         provideHttpClientTesting(),
+        provideRouter([]),
         {
           provide: AuthService,
           useClass: MockAuthService,

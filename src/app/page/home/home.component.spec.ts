@@ -3,7 +3,7 @@ import { HomeComponent } from './home.component';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { AuthService } from '../../service/auth/auth.service';
-import { MockAuthService } from '../../test/mockService';
+import { MockAuthService } from '../../../test/mockService';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 

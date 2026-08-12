@@ -1,5 +1,10 @@
 import { FormBuilder, FormControl } from '@angular/forms';
-import { dateValidator, freeTextValidator, moneyValidator } from './validator';
+import {
+  dateValidator,
+  freeTextValidator,
+  moneyValidator,
+  passwordsMatchValidator,
+} from './validator';
 import { REGEX } from '../regex/regex';
 
 describe('validator', () => {
@@ -64,6 +69,29 @@ describe('validator', () => {
       const result = dateValidator(control);
 
       expect(result).toStrictEqual(expected);
+    });
+  });
+  describe('passwordsMatchValidator', () => {
+    it('should return null when password and confirmPassword match', () => {
+      const fb = new FormBuilder();
+      const group = fb.group({
+        password: new FormControl('password123'),
+        confirmPassword: new FormControl('password123'),
+      });
+
+      expect(passwordsMatchValidator(group)).toBeNull();
+    });
+
+    it('should return a passwordsMismatch error when password and confirmPassword differ', () => {
+      const fb = new FormBuilder();
+      const group = fb.group({
+        password: new FormControl('password123'),
+        confirmPassword: new FormControl('somethingElse'),
+      });
+
+      expect(passwordsMatchValidator(group)).toStrictEqual({
+        passwordsMismatch: true,
+      });
     });
   });
 });
