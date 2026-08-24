@@ -37,7 +37,11 @@ describe('AuthService', () => {
     localStorage.clear();
 
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
     });
     service = TestBed.inject(AuthService);
     httpTestingController = TestBed.inject(HttpTestingController);
@@ -81,9 +85,7 @@ describe('AuthService', () => {
         refresh: 'refresh-token',
       };
 
-      service
-        .authenticate({ username: 'user', password: 'pass' })
-        .subscribe();
+      service.authenticate({ username: 'user', password: 'pass' }).subscribe();
 
       const req = httpTestingController.expectOne(URL_AUTHENTICATE);
 
@@ -105,10 +107,10 @@ describe('AuthService', () => {
         .flush(authenticateResponse);
 
       expect(localStorage.getItem(LOCAL_STORAGE_KEY_ACCESS)).toBe(
-        authenticateResponse.access
+        authenticateResponse.access,
       );
       expect(localStorage.getItem(LOCAL_STORAGE_KEY_REFRESH)).toBe(
-        authenticateResponse.refresh
+        authenticateResponse.refresh,
       );
       expect(service.loggedIn()).toBe(true);
     });
@@ -125,7 +127,7 @@ describe('AuthService', () => {
         .flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
 
       expect(alertSpy).toHaveBeenCalledWith(
-        'Invalid user and password, please try again'
+        'Invalid user and password, please try again',
       );
     });
   });
@@ -140,7 +142,9 @@ describe('AuthService', () => {
     });
 
     it('should navigate to login', () => {
-      const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      const navigateSpy = jest
+        .spyOn(router, 'navigate')
+        .mockResolvedValue(true);
 
       service.logout();
 
@@ -152,7 +156,7 @@ describe('AuthService', () => {
     it('should return true if now is before token expirey', () => {
       localStorage.setItem(
         LOCAL_STORAGE_KEY_ACCESS,
-        createToken({ exp: dayjs().add(1, 'hour').unix() })
+        createToken({ exp: dayjs().add(1, 'hour').unix() }),
       );
 
       expect(service.isLoggedIn()).toBe(true);
@@ -161,7 +165,7 @@ describe('AuthService', () => {
     it('should return false if now is after token expirey', () => {
       localStorage.setItem(
         LOCAL_STORAGE_KEY_ACCESS,
-        createToken({ exp: dayjs().subtract(1, 'hour').unix() })
+        createToken({ exp: dayjs().subtract(1, 'hour').unix() }),
       );
 
       expect(service.isLoggedIn()).toBe(false);
@@ -215,20 +219,26 @@ describe('AuthService', () => {
     };
 
     it('it should store the access token in localStorage under key LOCAL_STOREAGE_KEY_ACCESS', () => {
-      (service as unknown as { storeTokens: (r: IAuthenticateResponse) => void })
-        .storeTokens(response);
+      (
+        service as unknown as {
+          storeTokens: (r: IAuthenticateResponse) => void;
+        }
+      ).storeTokens(response);
 
       expect(localStorage.getItem(LOCAL_STORAGE_KEY_ACCESS)).toBe(
-        response.access
+        response.access,
       );
     });
 
     it('it should store the refresh token in localStorage under key LOCAL_STOREAGE_KEY_refresh', () => {
-      (service as unknown as { storeTokens: (r: IAuthenticateResponse) => void })
-        .storeTokens(response);
+      (
+        service as unknown as {
+          storeTokens: (r: IAuthenticateResponse) => void;
+        }
+      ).storeTokens(response);
 
       expect(localStorage.getItem(LOCAL_STORAGE_KEY_REFRESH)).toBe(
-        'refresh-token'
+        'refresh-token',
       );
     });
   });
