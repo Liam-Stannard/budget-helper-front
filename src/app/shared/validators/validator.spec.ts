@@ -1,5 +1,10 @@
 import { FormBuilder, FormControl } from '@angular/forms';
-import { dateValidator, freeTextValidator, moneyValidator } from './validator';
+import {
+  dateValidator,
+  freeTextValidator,
+  moneyValidator,
+  passwordsMatchValidator,
+} from './validator';
 import { REGEX } from '../regex/regex';
 
 describe('validator', () => {
@@ -66,6 +71,122 @@ describe('validator', () => {
       const result = dateValidator(control);
 
       expect(result).toStrictEqual(expected);
+    });
+  });
+
+  describe('passwordsMatchValidator', () => {
+    const fb = new FormBuilder();
+
+    it('should return null when the passwords match', () => {
+      const group = fb.group({
+        password: 'password123',
+        confirmPassword: 'password123',
+      });
+      const validator = passwordsMatchValidator('password', 'confirmPassword');
+
+      const result = validator(group);
+
+      expect(result).toBeNull();
+      expect(group.get('confirmPassword')?.errors).toBeNull();
+    });
+
+    it('should return a passwordsMismatch error and set it on the confirm control when the passwords do not match', () => {
+      const group = fb.group({
+        password: 'password123',
+        confirmPassword: 'password456',
+      });
+      const validator = passwordsMatchValidator('password', 'confirmPassword');
+
+      const result = validator(group);
+
+      expect(result).toStrictEqual({ passwordsMismatch: true });
+      expect(group.get('confirmPassword')?.errors).toStrictEqual({
+        passwordsMismatch: true,
+      });
+    });
+
+    it('should clear a previously set passwordsMismatch error once the passwords match', () => {
+      const group = fb.group({
+        password: 'password123',
+        confirmPassword: 'password456',
+      });
+      const validator = passwordsMatchValidator('password', 'confirmPassword');
+
+      validator(group);
+      group.get('confirmPassword')?.setValue('password123');
+      const result = validator(group);
+
+      expect(result).toBeNull();
+      expect(group.get('confirmPassword')?.errors).toBeNull();
+    });
+
+    it('should return null when either control is missing from the group', () => {
+      const group = fb.group({
+        password: 'password123',
+      });
+      const validator = passwordsMatchValidator('password', 'confirmPassword');
+
+      const result = validator(group);
+
+      expect(result).toBeNull();
+    });
+
+    it('should preserve other pre-existing errors on the confirm control when clearing passwordsMismatch', () => {
+      // Passwords already match from the start, so setValue() (which would trigger a
+      // real revalidation and wipe manually-injected errors on a control with no
+      // validators of its own) is never called - isolating just the group validator's
+      // own error-merging logic.
+      const group = fb.group({
+        password: 'password123',
+        confirmPassword: 'password123',
+      });
+      // Simulate an unrelated error (e.g. a pattern/minlength validator) coexisting
+      // alongside a passwordsMismatch error left over from a previous validation pass.
+      group.get('confirmPassword')?.setErrors({
+        passwordsMismatch: true,
+        someOtherError: true,
+      });
+      const validator = passwordsMatchValidator('password', 'confirmPassword');
+
+      const result = validator(group);
+
+      expect(result).toBeNull();
+      expect(group.get('confirmPassword')?.errors).toStrictEqual({
+        someOtherError: true,
+      });
+    });
+
+    it('should treat trailing-whitespace-only differences as a mismatch (no trimming)', () => {
+      const group = fb.group({
+        password: 'password123',
+        confirmPassword: 'password123 ',
+      });
+      const validator = passwordsMatchValidator('password', 'confirmPassword');
+
+      const result = validator(group);
+
+      expect(result).toStrictEqual({ passwordsMismatch: true });
+      expect(group.get('confirmPassword')?.errors).toStrictEqual({
+        passwordsMismatch: true,
+      });
+    });
+
+    it('should match regardless of which control was populated first (order independence)', () => {
+      const group = fb.group({
+        password: '',
+        confirmPassword: 'secret',
+      });
+      const validator = passwordsMatchValidator('password', 'confirmPassword');
+
+      // confirmPassword filled in before password
+      let result = validator(group);
+      expect(result).toStrictEqual({ passwordsMismatch: true });
+
+      group.get('password')?.setValue('secret');
+      result = validator(group);
+
+      expect(result).toBeNull();
+      expect(group.get('confirmPassword')?.errors).toBeNull();
     });
   });
 });

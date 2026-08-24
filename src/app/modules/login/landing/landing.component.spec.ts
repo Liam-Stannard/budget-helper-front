@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { LandingComponent } from './landing.component';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -15,6 +16,7 @@ describe('LandingComponent', () => {
       providers: [
         provideAnimationsAsync(),
         provideHttpClientTesting(),
+        provideRouter([]),
         {
           provide: AuthService,
           useClass: MockAuthService,

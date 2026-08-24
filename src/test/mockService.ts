@@ -43,6 +43,7 @@ const postPutTransactionResponse: IPostPutTransactionResponse = {
 
 export class MockAuthService {
   authenticate = jest.fn(() => of(true));
+  register = jest.fn(() => of(true));
   isLoggedIn = jest.fn(() => true);
   loggedIn = signal(true);
 }

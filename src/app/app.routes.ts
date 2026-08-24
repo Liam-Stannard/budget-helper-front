@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/guard/auth.guard';
 import { LandingComponent } from './modules/login/landing/landing.component';
+import { RegisterComponent } from './modules/login/register-card/register.component';
 import { HomeComponent } from './modules/home/home.component';
 import { TransactionPageComponent } from './modules/transaction/components/transaction-page/transaction-page.component';
 import { TransactionDetailsComponent } from './modules/transaction/components/transaction-details/transaction-details.component';
@@ -12,6 +13,11 @@ export const routes: Routes = [
     component: LandingComponent,
     path: 'login',
     title: 'Login',
+  },
+  {
+    component: RegisterComponent,
+    path: 'register',
+    title: 'Register',
   },
   {
     component: HomeComponent,

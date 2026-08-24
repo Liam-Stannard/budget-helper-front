@@ -1,0 +1,30 @@
+@use "../../../../styles/variables" as vars;
+
+.register {
+  max-width: 30rem;
+  margin: vars.$spacing-lg auto vars.$spacing-lg auto;
+
+  @media (max-width: vars.$breakpoint-mobile) {
+    margin: vars.$spacing-sm auto;
+  }
+}
+
+.register-title {
+  padding: 16px;
+}
+
+mat-card-content {
+  width: 90%;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+mat-card-actions {
+  width: 90%;
+}
+
+button {
+  width: 100%;
+}

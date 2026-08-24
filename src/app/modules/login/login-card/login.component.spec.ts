@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { throwError } from 'rxjs';
 import { LoginComponent } from './login.component';
@@ -19,6 +19,7 @@ describe('LoginComponent', () => {
       providers: [
         provideAnimationsAsync(),
         provideHttpClientTesting(),
+        provideRouter([]),
         {
           provide: AuthService,
           useClass: MockAuthService,

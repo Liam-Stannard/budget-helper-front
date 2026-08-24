@@ -65,7 +65,12 @@ describe('AuthService', () => {
       };
 
       service
-        .register({ username: 'user', password: 'pass' })
+        .register({
+          username: 'user',
+          role: 'ROLE_USER',
+          email: 'user@example.com',
+          password: 'pass',
+        })
         .subscribe((response) => {
           expect(response).toEqual(registerResponse);
         });
@@ -75,6 +80,63 @@ describe('AuthService', () => {
       expect(req.request.method).toBe('POST');
 
       req.flush(registerResponse);
+    });
+
+    it('should post exactly {username, role, email, password} as the request body, with no extra fields', () => {
+      service
+        .register({
+          username: 'user',
+          role: 'ROLE_USER',
+          email: 'user@example.com',
+          password: 'pass',
+        })
+        .subscribe();
+
+      const req = httpTestingController.expectOne(URL_REGISTER);
+
+      expect(req.request.body).toStrictEqual({
+        username: 'user',
+        role: 'ROLE_USER',
+        email: 'user@example.com',
+        password: 'pass',
+      });
+      expect(Object.keys(req.request.body)).toStrictEqual([
+        'username',
+        'role',
+        'email',
+        'password',
+      ]);
+
+      req.flush({
+        access: createToken(),
+        refresh: 'refresh-token',
+      });
+    });
+
+    it('should return an observable and call storeTokens with the response on success', () => {
+      const registerResponse: IRegisterResponse = {
+        access: createToken({ exp: dayjs().add(1, 'hour').unix() }),
+        refresh: 'refresh-token',
+      };
+
+      service
+        .register({
+          username: 'user',
+          role: 'ROLE_USER',
+          email: 'user@example.com',
+          password: 'pass',
+        })
+        .subscribe();
+
+      httpTestingController.expectOne(URL_REGISTER).flush(registerResponse);
+
+      expect(localStorage.getItem(LOCAL_STORAGE_KEY_ACCESS)).toBe(
+        registerResponse.access,
+      );
+      expect(localStorage.getItem(LOCAL_STORAGE_KEY_REFRESH)).toBe(
+        registerResponse.refresh,
+      );
+      expect(service.loggedIn()).toBe(true);
     });
   });
 
