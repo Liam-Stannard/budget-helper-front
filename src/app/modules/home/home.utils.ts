@@ -1,11 +1,18 @@
 import dayjs from 'dayjs';
 import { ITransaction } from '../transaction/shared/transaction.interface';
 import { Category } from '../transaction/shared/transaction.types';
+import { CATEGORY_OPTIONS } from '../transaction/shared/transcations.constants';
 
 export interface ICategoryAmount {
   category: Category;
   amount: number;
 }
+
+/** The fixed set of spend categories charted on the home screen — everything in the category
+ * enum except INCOME, which isn't spend (see filterExpenses). */
+const EXPENSE_CATEGORIES: Category[] = CATEGORY_OPTIONS.filter(
+  (option) => option.value !== 'INCOME'
+).map((option) => option.value);
 
 export function filterCurrentMonth(
   transactions: ITransaction[]
@@ -65,6 +72,43 @@ export function getTopCategory(
   breakdown: ICategoryAmount[]
 ): ICategoryAmount | undefined {
   return breakdown[0];
+}
+
+export interface ICategoryComparison {
+  category: Category;
+  currentAmount: number;
+  previousAmount: number;
+}
+
+/** Pairs this month's and last month's spend per category, zero-filling any category with no
+ * spend in a given month so the two months' bars always line up — unlike sumByCategory, which
+ * only includes categories actually present in its input. Expects both transaction lists to
+ * already have INCOME filtered out (see filterExpenses). */
+export function compareCategoriesByMonth(
+  currentMonthExpenses: ITransaction[],
+  previousMonthExpenses: ITransaction[]
+): ICategoryComparison[] {
+  const currentByCategory = new Map(
+    sumByCategory(currentMonthExpenses).map((item) => [
+      item.category,
+      item.amount,
+    ])
+  );
+  const previousByCategory = new Map(
+    sumByCategory(previousMonthExpenses).map((item) => [
+      item.category,
+      item.amount,
+    ])
+  );
+
+  return EXPENSE_CATEGORIES.map((category) => ({
+    category,
+    currentAmount: currentByCategory.get(category) ?? 0,
+    previousAmount: previousByCategory.get(category) ?? 0,
+  })).sort(
+    (a, b) =>
+      b.currentAmount + b.previousAmount - (a.currentAmount + a.previousAmount)
+  );
 }
 
 export interface IMonthDelta {

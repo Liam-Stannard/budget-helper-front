@@ -1,0 +1,59 @@
+<mat-card class="chart-card">
+@if (hasData()) {
+<div class="legend">
+  <span class="legend-item"
+    ><span class="swatch swatch-current"></span>This month</span
+  >
+  <span class="legend-item"
+    ><span class="swatch swatch-previous"></span>Last month</span
+  >
+</div>
+<div class="chart">
+  @for (item of data; track item.category) {
+  <div class="row">
+    <span class="row-label">{{ label(item.category) }}</span>
+    <div class="bars">
+      <div class="bar-track">
+        <div
+          class="bar bar-current"
+          tabindex="0"
+          role="img"
+          [attr.aria-label]="ariaLabel(item, 'current')"
+          [style.width.%]="widthPercent(item.currentAmount)"
+          [style.background-color]="colorVar(item.category)"
+        >
+          <span class="tooltip" aria-hidden="true">
+            <strong>{{ item.currentAmount | currency }}</strong>
+            <span class="tooltip-meta">This month</span>
+          </span>
+        </div>
+      </div>
+      <div class="bar-track">
+        <div
+          class="bar bar-previous"
+          tabindex="0"
+          role="img"
+          [attr.aria-label]="ariaLabel(item, 'previous')"
+          [style.width.%]="widthPercent(item.previousAmount)"
+          [style.background-color]="colorVar(item.category)"
+        >
+          <span class="tooltip" aria-hidden="true">
+            <strong>{{ item.previousAmount | currency }}</strong>
+            <span class="tooltip-meta">Last month</span>
+          </span>
+        </div>
+      </div>
+    </div>
+    <span class="row-value">
+      <span class="row-value-current">{{ item.currentAmount | currency }}</span>
+      <span class="row-value-previous"
+        >{{ item.previousAmount | currency }}</span
+      >
+    </span>
+  </div>
+  }
+</div>
+} @else {
+<p class="empty-state">No transactions yet.</p>
+}
+</mat-card>

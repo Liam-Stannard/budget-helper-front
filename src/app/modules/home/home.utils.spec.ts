@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { ITransaction } from '../transaction/shared/transaction.interface';
 import {
+  compareCategoriesByMonth,
   filterCurrentMonth,
   filterExpenses,
   filterPreviousMonth,
@@ -160,6 +161,157 @@ describe('home.utils', () => {
         category: 'BILL',
         amount: 50,
       });
+    });
+  });
+
+  describe('compareCategoriesByMonth', () => {
+    it('should zero-fill every non-INCOME category present in neither month', () => {
+      const result = compareCategoriesByMonth([], []);
+
+      expect(result).toEqual(
+        expect.arrayContaining([
+          { category: 'FOOD', currentAmount: 0, previousAmount: 0 },
+          { category: 'BILL', currentAmount: 0, previousAmount: 0 },
+          { category: 'SUBSCRIPTION', currentAmount: 0, previousAmount: 0 },
+          { category: 'CLOTHING', currentAmount: 0, previousAmount: 0 },
+        ])
+      );
+      expect(result).toHaveLength(4);
+    });
+
+    it('should never include INCOME as a category', () => {
+      const result = compareCategoriesByMonth([], []);
+
+      expect(result.some((item) => (item.category as string) === 'INCOME')).toBe(
+        false
+      );
+    });
+
+    it('should pair up this month and last month amounts per category', () => {
+      const current = [
+        makeTransaction({ category: 'FOOD', amount: '10.00' }),
+      ];
+      const previous = [
+        makeTransaction({ category: 'BILL', amount: '20.00' }),
+      ];
+
+      const result = compareCategoriesByMonth(current, previous);
+
+      expect(result).toEqual(
+        expect.arrayContaining([
+          { category: 'FOOD', currentAmount: 10, previousAmount: 0 },
+          { category: 'BILL', currentAmount: 0, previousAmount: 20 },
+        ])
+      );
+    });
+
+    it('should still zero-fill a category with spend in only one of the two months', () => {
+      const current = [
+        makeTransaction({ category: 'FOOD', amount: '10.00' }),
+      ];
+
+      const result = compareCategoriesByMonth(current, []);
+      const food = result.find((item) => item.category === 'FOOD');
+
+      expect(food).toEqual({ category: 'FOOD', currentAmount: 10, previousAmount: 0 });
+    });
+
+    it('should zero-fill symmetrically when every category has spend only in the current month', () => {
+      const current = [
+        makeTransaction({ category: 'FOOD', amount: '10.00' }),
+        makeTransaction({ category: 'BILL', amount: '20.00' }),
+        makeTransaction({ category: 'SUBSCRIPTION', amount: '30.00' }),
+        makeTransaction({ category: 'CLOTHING', amount: '40.00' }),
+      ];
+
+      const result = compareCategoriesByMonth(current, []);
+
+      expect(result).toEqual(
+        expect.arrayContaining([
+          { category: 'FOOD', currentAmount: 10, previousAmount: 0 },
+          { category: 'BILL', currentAmount: 20, previousAmount: 0 },
+          { category: 'SUBSCRIPTION', currentAmount: 30, previousAmount: 0 },
+          { category: 'CLOTHING', currentAmount: 40, previousAmount: 0 },
+        ])
+      );
+      expect(result.every((item) => item.previousAmount === 0)).toBe(true);
+    });
+
+    it('should zero-fill symmetrically when every category has spend only in the previous month', () => {
+      const previous = [
+        makeTransaction({ category: 'FOOD', amount: '10.00' }),
+        makeTransaction({ category: 'BILL', amount: '20.00' }),
+        makeTransaction({ category: 'SUBSCRIPTION', amount: '30.00' }),
+        makeTransaction({ category: 'CLOTHING', amount: '40.00' }),
+      ];
+
+      const result = compareCategoriesByMonth([], previous);
+
+      expect(result).toEqual(
+        expect.arrayContaining([
+          { category: 'FOOD', currentAmount: 0, previousAmount: 10 },
+          { category: 'BILL', currentAmount: 0, previousAmount: 20 },
+          { category: 'SUBSCRIPTION', currentAmount: 0, previousAmount: 30 },
+          { category: 'CLOTHING', currentAmount: 0, previousAmount: 40 },
+        ])
+      );
+      expect(result.every((item) => item.currentAmount === 0)).toBe(true);
+    });
+
+    it('should never surface INCOME even when the caller forgot to filter it out (defense in depth)', () => {
+      const current = [
+        makeTransaction({ category: 'INCOME', amount: '2000.00' }),
+        makeTransaction({ category: 'FOOD', amount: '10.00' }),
+      ];
+      const previous = [
+        makeTransaction({ category: 'INCOME', amount: '1800.00' }),
+      ];
+
+      const result = compareCategoriesByMonth(current, previous);
+
+      expect(result.some((item) => (item.category as string) === 'INCOME')).toBe(
+        false
+      );
+      expect(result).toHaveLength(4);
+      // and it shouldn't have leaked its amount into any expense category either
+      expect(
+        result.reduce((sum, item) => sum + item.currentAmount + item.previousAmount, 0)
+      ).toBe(10);
+    });
+
+    it('should handle a mix of INCOME-only input for both months by returning an all-zero comparison', () => {
+      const current = [makeTransaction({ category: 'INCOME', amount: '2000.00' })];
+      const previous = [makeTransaction({ category: 'INCOME', amount: '1800.00' })];
+
+      const result = compareCategoriesByMonth(current, previous);
+
+      expect(result.every((item) => item.currentAmount === 0 && item.previousAmount === 0)).toBe(
+        true
+      );
+    });
+
+    it('should not overflow or misbehave with a large amount disparity between categories', () => {
+      const current = [
+        makeTransaction({ category: 'FOOD', amount: '5.00' }),
+        makeTransaction({ category: 'BILL', amount: '5000.00' }),
+      ];
+
+      const result = compareCategoriesByMonth(current, []);
+
+      expect(result.find((item) => item.category === 'FOOD')?.currentAmount).toBe(5);
+      expect(result.find((item) => item.category === 'BILL')?.currentAmount).toBe(5000);
+    });
+
+    it('should include negative amounts (e.g. a refund) in the per-category totals rather than dropping them', () => {
+      const current = [
+        makeTransaction({ category: 'FOOD', amount: '20.00' }),
+        makeTransaction({ category: 'FOOD', amount: '-5.00' }),
+      ];
+
+      const result = compareCategoriesByMonth(current, []);
+      const food = result.find((item) => item.category === 'FOOD');
+
+      expect(food).toEqual({ category: 'FOOD', currentAmount: 15, previousAmount: 0 });
     });
   });
 

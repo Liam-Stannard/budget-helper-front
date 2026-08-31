@@ -131,8 +131,74 @@ describe('HomeComponent', () => {
       ]);
     });
 
+    it('should not include income in the category comparison', () => {
+      expect(
+        component['categoryComparison']().some(
+          (item) => (item.category as string) === 'INCOME'
+        )
+      ).toBe(false);
+    });
+
     it('should still count the income transaction toward the transaction count', () => {
       expect(component['countThisMonth']()).toBe(2);
+    });
+  });
+
+  describe('category comparison', () => {
+    it('should return an all-zero, 4-category comparison for a brand-new user with no transactions in either month', () => {
+      component['transactions'].set([]);
+      fixture.detectChanges();
+
+      const comparison = component['categoryComparison']();
+
+      expect(comparison).toHaveLength(4);
+      expect(
+        comparison.every(
+          (item) => item.currentAmount === 0 && item.previousAmount === 0
+        )
+      ).toBe(true);
+    });
+
+    it('should return an all-zero comparison when both months only contain INCOME transactions', () => {
+      component['transactions'].set([
+        makeTransaction({ category: 'INCOME', amount: '2000.00' }),
+        makeTransaction({
+          category: 'INCOME',
+          amount: '1800.00',
+          date: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
+        }),
+      ]);
+      fixture.detectChanges();
+
+      const comparison = component['categoryComparison']();
+
+      expect(comparison).toHaveLength(4);
+      expect(
+        comparison.every(
+          (item) => item.currentAmount === 0 && item.previousAmount === 0
+        )
+      ).toBe(true);
+    });
+
+    it('should zero-fill categories with spend in only one of the two months', () => {
+      component['transactions'].set([
+        makeTransaction({ category: 'FOOD', amount: '10.00' }),
+        makeTransaction({
+          category: 'BILL',
+          amount: '20.00',
+          date: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
+        }),
+      ]);
+      fixture.detectChanges();
+
+      const comparison = component['categoryComparison']();
+
+      expect(comparison).toEqual(
+        expect.arrayContaining([
+          { category: 'FOOD', currentAmount: 10, previousAmount: 0 },
+          { category: 'BILL', currentAmount: 0, previousAmount: 20 },
+        ])
+      );
     });
   });
 
