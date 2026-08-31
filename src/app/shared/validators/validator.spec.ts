@@ -1,5 +1,6 @@
 import { FormBuilder, FormControl } from '@angular/forms';
 import {
+  dateRangeValidator,
   dateValidator,
   freeTextValidator,
   moneyValidator,
@@ -187,6 +188,154 @@ describe('validator', () => {
 
       expect(result).toBeNull();
       expect(group.get('confirmPassword')?.errors).toBeNull();
+    });
+  });
+
+  describe('dateRangeValidator', () => {
+    const fb = new FormBuilder();
+
+    it('should return null when "from" is before "to"', () => {
+      const group = fb.group({
+        from: new Date('2024-01-01'),
+        to: new Date('2024-01-31'),
+      });
+      const validator = dateRangeValidator('from', 'to');
+
+      const result = validator(group);
+
+      expect(result).toBeNull();
+      expect(group.get('to')?.errors).toBeNull();
+    });
+
+    it('should return null when "from" and "to" are the same day', () => {
+      const group = fb.group({
+        from: new Date('2024-01-01'),
+        to: new Date('2024-01-01'),
+      });
+      const validator = dateRangeValidator('from', 'to');
+
+      const result = validator(group);
+
+      expect(result).toBeNull();
+      expect(group.get('to')?.errors).toBeNull();
+    });
+
+    it('should return a dateRangeInvalid error and set it on the "to" control when "from" is after "to"', () => {
+      const group = fb.group({
+        from: new Date('2024-02-01'),
+        to: new Date('2024-01-01'),
+      });
+      const validator = dateRangeValidator('from', 'to');
+
+      const result = validator(group);
+
+      expect(result).toStrictEqual({ dateRangeInvalid: true });
+      expect(group.get('to')?.errors).toStrictEqual({
+        dateRangeInvalid: true,
+      });
+    });
+
+    it('should clear a previously set dateRangeInvalid error once the range becomes valid', () => {
+      const group = fb.group({
+        from: new Date('2024-02-01'),
+        to: new Date('2024-01-01'),
+      });
+      const validator = dateRangeValidator('from', 'to');
+      // Seed the stale error directly on "to", bypassing the validator. Going through
+      // "to"'s own setValue() instead would clear the error via Angular's own per-control
+      // revalidation (it has no validators of its own) before the group validator below
+      // ever runs, masking whether the validator's own clearing logic actually executes.
+      group.get('to')?.setErrors({ dateRangeInvalid: true });
+
+      // Change "from" (not "to") so "to" is never independently revalidated - only the
+      // explicit group-level validator call can be responsible for clearing its error.
+      group.get('from')?.setValue(new Date('2024-01-01'));
+      const result = validator(group);
+
+      expect(result).toBeNull();
+      expect(group.get('to')?.errors).toBeNull();
+    });
+
+    it('should return null when either control is missing from the group', () => {
+      const group = fb.group({
+        from: new Date('2024-02-01'),
+      });
+      const validator = dateRangeValidator('from', 'to');
+
+      const result = validator(group);
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null and not flag an error while either date is empty', () => {
+      const group = fb.group({
+        from: new Date('2024-02-01'),
+        to: null,
+      });
+      const validator = dateRangeValidator('from', 'to');
+
+      const result = validator(group);
+
+      expect(result).toBeNull();
+      expect(group.get('to')?.errors).toBeNull();
+    });
+
+    it('should clear a previously set dateRangeInvalid error once "to" is cleared back to empty', () => {
+      const group = fb.group({
+        from: new Date('2024-02-01'),
+        to: new Date('2024-01-01'),
+      });
+      const validator = dateRangeValidator('from', 'to');
+
+      group.get('to')?.setValue(null);
+      // Seed the stale error *after* clearing "to"'s value (not before), since setValue()
+      // clears any existing error via Angular's own per-control revalidation - seeding it
+      // beforehand would just have it wiped out before the group validator below runs,
+      // masking whether the validator's own clearing logic actually executes.
+      group.get('to')?.setErrors({ dateRangeInvalid: true });
+
+      const result = validator(group);
+
+      expect(result).toBeNull();
+      expect(group.get('to')?.errors).toBeNull();
+    });
+
+    it('should clear a stale dateRangeInvalid error on "to" when "from" (not "to") is cleared back to empty', () => {
+      // Only "from" changes here - "to" keeps its own manually-set error untouched by any
+      // revalidation of "to" itself, exercising the cleanup branch taken when "to.value" is
+      // still populated but "from.value" (not "to.value") is what became empty.
+      const group = fb.group({
+        from: new Date('2024-02-01'),
+        to: new Date('2024-01-01'),
+      });
+      const validator = dateRangeValidator('from', 'to');
+      validator(group);
+      expect(group.get('to')?.errors).toStrictEqual({ dateRangeInvalid: true });
+
+      group.get('from')?.setValue(null);
+      const result = validator(group);
+
+      expect(result).toBeNull();
+      expect(group.get('to')?.errors).toBeNull();
+    });
+
+    it('should preserve other pre-existing errors on the "to" control when clearing dateRangeInvalid', () => {
+      const group = fb.group({
+        from: new Date('2024-01-01'),
+        to: new Date('2024-01-31'),
+      });
+      group.get('to')?.setErrors({
+        dateRangeInvalid: true,
+        someOtherError: true,
+      });
+      const validator = dateRangeValidator('from', 'to');
+
+      const result = validator(group);
+
+      expect(result).toBeNull();
+      expect(group.get('to')?.errors).toStrictEqual({
+        someOtherError: true,
+      });
     });
   });
 });

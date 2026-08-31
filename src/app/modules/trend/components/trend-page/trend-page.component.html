@@ -1,0 +1,81 @@
+<h1 class="mat-h1">Spending Trends</h1>
+
+<mat-card class="date-range-card">
+  <mat-card-content>
+    <form
+      [formGroup]="form"
+      class="flex flex-row-start gap-20 wrap"
+      (ngSubmit)="submit()"
+    >
+      <mat-form-field appearance="outline">
+        <mat-label>From</mat-label>
+        <input
+          matInput
+          id="from"
+          name="from"
+          [matDatepicker]="fromPicker"
+          [formControl]="form.controls.from"
+        />
+        <mat-datepicker-toggle
+          matIconSuffix
+          [for]="fromPicker"
+        ></mat-datepicker-toggle>
+        <mat-datepicker #fromPicker></mat-datepicker>
+        @if (form.controls.from.hasError('required')) {
+        <mat-error>From date is required</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>To</mat-label>
+        <input
+          matInput
+          id="to"
+          name="to"
+          [matDatepicker]="toPicker"
+          [formControl]="form.controls.to"
+        />
+        <mat-datepicker-toggle
+          matIconSuffix
+          [for]="toPicker"
+        ></mat-datepicker-toggle>
+        <mat-datepicker #toPicker></mat-datepicker>
+        @if (form.controls.to.hasError('required')) {
+        <mat-error>To date is required</mat-error>
+        } @else if (form.controls.to.hasError('dateRangeInvalid')) {
+        <mat-error>"From" date must not be after "To" date</mat-error>
+        }
+      </mat-form-field>
+
+      <button
+        mat-raised-button
+        color="primary"
+        type="submit"
+        [disabled]="form.invalid || loading()"
+      >
+        View trends
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+@if (loading()) {
+<mat-progress-bar mode="indeterminate" />
+}
+
+@if (!loading() && hasSearched()) {
+  @if (transactionCount() === 0) {
+  <p class="empty-state">No transactions in this range.</p>
+  } @else {
+  <div class="stat-row">
+    <app-stat-tile
+      label="Total spend"
+      [value]="(totalSpend() | currency)!"
+    />
+    <app-stat-tile
+      label="Transactions"
+      [value]="transactionCount().toString()"
+    />
+  </div>
+  }
+}

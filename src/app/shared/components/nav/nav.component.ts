@@ -34,6 +34,7 @@ export class NavComponent
     '/login',
     '/transactions',
     '/accounts',
+    '/trends',
   ];
 
   protected showBackButton = computed(() =>
