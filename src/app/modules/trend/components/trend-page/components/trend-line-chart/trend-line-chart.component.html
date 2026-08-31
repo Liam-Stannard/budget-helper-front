@@ -1,0 +1,47 @@
+<mat-card class="chart-card">
+@if (buckets.length > 0) {
+<svg
+  class="chart"
+  [attr.viewBox]="'0 0 ' + viewBoxWidth + ' ' + viewBoxHeight"
+  preserveAspectRatio="none"
+  role="img"
+  aria-label="Spend per period over the selected date range"
+>
+  @for (tick of yTicks(); track tick.y) {
+  <line
+    class="gridline"
+    x1="64"
+    [attr.x2]="viewBoxWidth - 16"
+    [attr.y1]="tick.y"
+    [attr.y2]="tick.y"
+  />
+  <text class="y-label" x="58" [attr.y]="tick.y" text-anchor="end" dominant-baseline="middle">
+    {{ tick.label }}
+  </text>
+  }
+
+  @if (plotPoints().length > 1) {
+  <polyline class="line" [attr.points]="linePoints()" fill="none" />
+  }
+
+  @for (point of plotPoints(); track $index) {
+  <circle
+    class="point"
+    tabindex="0"
+    [attr.cx]="point.x"
+    [attr.cy]="point.y"
+    [attr.r]="plotPoints().length > 1 ? 3 : 5"
+  >
+    <title>{{ pointLabel(point.bucket) }}</title>
+  </circle>
+  @if (xLabelIndices().has($index)) {
+  <text class="x-label" [attr.x]="point.x" [attr.y]="baselineY() + 18" text-anchor="middle">
+    {{ point.bucket.label }}
+  </text>
+  }
+  }
+</svg>
+} @else {
+<p class="empty-state">No transactions to plot.</p>
+}
+</mat-card>

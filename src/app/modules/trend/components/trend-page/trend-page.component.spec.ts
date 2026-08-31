@@ -828,6 +828,424 @@ describe('TrendPageComponent', () => {
       });
     });
 
+    describe('trend line chart', () => {
+      it('should render the chart with one zero-filled bucket per day in the searched range', () => {
+        transactionListAllService.getAllTransactions.mockReturnValueOnce(
+          of({
+            transactionList: [
+              makeTransaction({ id: 1, date: '2024-01-01', category: 'FOOD', amount: '10.00' }),
+              makeTransaction({ id: 2, date: '2024-01-03', category: 'FOOD', amount: '5.00' }),
+            ],
+            totalElements: 2,
+            totalPages: 1,
+          })
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-03'),
+        });
+
+        component['submit']();
+        fixture.detectChanges();
+
+        expect(component['trendBuckets']()).toEqual([
+          { label: '1 Jan', amount: 10 },
+          { label: '2 Jan', amount: 0 },
+          { label: '3 Jan', amount: 5 },
+        ]);
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('app-trend-line-chart')).not.toBeNull();
+        expect(compiled.querySelectorAll('circle.point').length).toBe(3);
+      });
+
+      it('should exclude INCOME from the chart by default, matching the total spend tile', () => {
+        transactionListAllService.getAllTransactions.mockReturnValueOnce(
+          of({
+            transactionList: [
+              makeTransaction({ id: 1, date: '2024-01-01', category: 'FOOD', amount: '10.00' }),
+              makeTransaction({ id: 2, date: '2024-01-01', category: 'INCOME', amount: '500.00' }),
+            ],
+            totalElements: 2,
+            totalPages: 1,
+          })
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-01'),
+        });
+
+        component['submit']();
+
+        expect(component['trendBuckets']()).toEqual([{ label: '1 Jan', amount: 10 }]);
+      });
+
+      it('should update live when the category filter is toggled, without resubmitting', () => {
+        transactionListAllService.getAllTransactions.mockReturnValue(
+          of({
+            transactionList: [
+              makeTransaction({ id: 1, date: '2024-01-01', category: 'FOOD', amount: '10.00' }),
+              makeTransaction({ id: 2, date: '2024-01-01', category: 'BILL', amount: '20.00' }),
+            ],
+            totalElements: 2,
+            totalPages: 1,
+          })
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-01'),
+        });
+        component['submit']();
+
+        expect(component['trendBuckets']()).toEqual([{ label: '1 Jan', amount: 30 }]);
+
+        component['form'].controls.categories.setValue(['FOOD']);
+
+        expect(component['trendBuckets']()).toEqual([{ label: '1 Jan', amount: 10 }]);
+      });
+
+      it('should be empty before any submission', () => {
+        expect(component['trendBuckets']()).toEqual([]);
+      });
+
+      it('should not render the chart alongside the empty state when no transactions match', () => {
+        transactionListAllService.getAllTransactions.mockReturnValueOnce(
+          of({ transactionList: [], totalElements: 0, totalPages: 0 })
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-31'),
+        });
+
+        component['submit']();
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('app-trend-line-chart')).toBeNull();
+        expect(compiled.querySelector('.empty-state')).not.toBeNull();
+        // Only one empty state shown - not the page-level one stacked with the chart's own.
+        expect(compiled.querySelectorAll('.empty-state').length).toBe(1);
+      });
+
+      it('should not render the chart, the stat tiles, or a second empty state when a raw non-empty fetch is narrowed to zero results by the category filter', () => {
+        transactionListAllService.getAllTransactions.mockReturnValueOnce(
+          of({
+            transactionList: [
+              makeTransaction({ id: 1, date: '2024-01-01', category: 'FOOD', amount: '10.00' }),
+            ],
+            totalElements: 1,
+            totalPages: 1,
+          })
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-31'),
+          categories: ['CLOTHING'], // narrows the fetched FOOD transaction out entirely
+        });
+
+        component['submit']();
+        fixture.detectChanges();
+
+        // Note: `trendBuckets()` itself isn't gated on `transactionCount()` - it's a pure
+        // function of `submittedRange` + `spendTransactions`, so it still computes a
+        // zero-filled bucket array for the full submitted range here (spendTransactions is
+        // legitimately empty, but the range itself is still known). That data is never
+        // rendered though - the template's `transactionCount() === 0` guard hides the chart
+        // entirely in favour of the page-level empty state, which is what's asserted below.
+        expect(component['trendBuckets']().every((bucket) => bucket.amount === 0)).toBe(
+          true
+        );
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        // Only the page-level empty state shows - no stale/zero stat tiles alongside it, and
+        // no chart (with its own internal empty state) stacked underneath.
+        expect(compiled.querySelector('.stat-row')).toBeNull();
+        expect(compiled.querySelector('app-trend-line-chart')).toBeNull();
+        expect(compiled.querySelectorAll('.empty-state').length).toBe(1);
+        expect(compiled.querySelector('.empty-state')?.textContent).toContain(
+          'No transactions match this range and filters.'
+        );
+      });
+
+      it('should show a zero-valued (not empty-state) chart when the fetched/filtered transactions are non-empty but entirely INCOME (default-excluded from spend)', () => {
+        transactionListAllService.getAllTransactions.mockReturnValueOnce(
+          of({
+            transactionList: [
+              makeTransaction({ id: 1, date: '2024-01-05', category: 'INCOME', amount: '500.00' }),
+            ],
+            totalElements: 1,
+            totalPages: 1,
+          })
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-10'),
+        });
+
+        component['submit']();
+        fixture.detectChanges();
+
+        // The unfiltered set is non-empty (it contains the INCOME transaction), so the page's
+        // count-based empty-state check doesn't trigger - the stat tiles and chart render, with
+        // a zero total/zero-filled buckets rather than a "no data" empty state.
+        expect(component['transactionCount']()).toBe(1);
+        expect(component['totalSpend']()).toBe(0);
+        expect(
+          component['trendBuckets']().every((bucket) => bucket.amount === 0)
+        ).toBe(true);
+        expect(component['trendBuckets']()).toHaveLength(10);
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('.stat-row')).not.toBeNull();
+        expect(compiled.querySelector('app-trend-line-chart')).not.toBeNull();
+        expect(compiled.querySelector('.empty-state')).toBeNull();
+      });
+
+      it('should render the lone-dot single-bucket chart in the DOM for a 1-day range', () => {
+        transactionListAllService.getAllTransactions.mockReturnValueOnce(
+          of({
+            transactionList: [
+              makeTransaction({ id: 1, date: '2024-01-15', category: 'FOOD', amount: '25.00' }),
+            ],
+            totalElements: 1,
+            totalPages: 1,
+          })
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-15'),
+          to: new Date('2024-01-15'),
+        });
+
+        component['submit']();
+        fixture.detectChanges();
+
+        expect(component['trendBuckets']()).toEqual([{ label: '15 Jan', amount: 25 }]);
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        const points = compiled.querySelectorAll('circle.point');
+        expect(points.length).toBe(1);
+        expect(compiled.querySelector('polyline.line')).toBeNull();
+      });
+
+      it('should not reshuffle the chart when the date-range form fields are edited mid-interaction, without submitting', () => {
+        transactionListAllService.getAllTransactions.mockReturnValueOnce(
+          of({
+            transactionList: [
+              makeTransaction({ id: 1, date: '2024-01-01', category: 'FOOD', amount: '10.00' }),
+              makeTransaction({ id: 2, date: '2024-01-03', category: 'FOOD', amount: '5.00' }),
+            ],
+            totalElements: 2,
+            totalPages: 1,
+          })
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-03'),
+        });
+        component['submit']();
+
+        const buckets = component['trendBuckets']();
+        expect(buckets).toEqual([
+          { label: '1 Jan', amount: 10 },
+          { label: '2 Jan', amount: 0 },
+          { label: '3 Jan', amount: 5 },
+        ]);
+
+        // Edit the date-range fields without pressing submit again - mirrors mid-interaction
+        // with the datepicker.
+        component['form'].patchValue({
+          from: new Date('2024-06-01'),
+          to: new Date('2024-06-30'),
+        });
+        fixture.detectChanges();
+
+        // The chart still reflects the last SUBMITTED range, not the not-yet-submitted form
+        // value - it must not reshuffle just because the fields changed.
+        expect(component['trendBuckets']()).toEqual(buckets);
+      });
+
+      describe('chart total matches the "Total spend" tile (drift check)', () => {
+        function sumChartBuckets(): number {
+          return component['trendBuckets']().reduce(
+            (sum, bucket) => sum + bucket.amount,
+            0
+          );
+        }
+
+        it('should match with no filter applied', () => {
+          transactionListAllService.getAllTransactions.mockReturnValueOnce(
+            of({
+              transactionList: [
+                makeTransaction({ id: 1, date: '2024-01-01', category: 'FOOD', amount: '10.00' }),
+                makeTransaction({ id: 2, date: '2024-01-15', category: 'BILL', amount: '20.50' }),
+                makeTransaction({ id: 3, date: '2024-01-31', category: 'INCOME', amount: '999.00' }),
+              ],
+              totalElements: 3,
+              totalPages: 1,
+            })
+          );
+          component['form'].patchValue({
+            from: new Date('2024-01-01'),
+            to: new Date('2024-01-31'),
+          });
+
+          component['submit']();
+
+          expect(sumChartBuckets()).toBe(component['totalSpend']());
+          expect(sumChartBuckets()).toBe(30.5);
+        });
+
+        it('should match with a category filter applied', () => {
+          transactionListAllService.getAllTransactions.mockReturnValueOnce(
+            of({
+              transactionList: [
+                makeTransaction({ id: 1, date: '2024-01-01', category: 'FOOD', amount: '10.00' }),
+                makeTransaction({ id: 2, date: '2024-01-15', category: 'BILL', amount: '20.50' }),
+                makeTransaction({ id: 3, date: '2024-01-31', category: 'CLOTHING', amount: '15.00' }),
+              ],
+              totalElements: 3,
+              totalPages: 1,
+            })
+          );
+          component['form'].patchValue({
+            from: new Date('2024-01-01'),
+            to: new Date('2024-01-31'),
+            categories: ['FOOD', 'CLOTHING'],
+          });
+
+          component['submit']();
+
+          expect(sumChartBuckets()).toBe(component['totalSpend']());
+          expect(sumChartBuckets()).toBe(25);
+        });
+
+        it('should match with an account filter applied (backend-filtered response)', () => {
+          transactionListAllService.getAllTransactions.mockReturnValueOnce(
+            of({
+              transactionList: [
+                makeTransaction({
+                  id: 1,
+                  date: '2024-01-05',
+                  category: 'FOOD',
+                  amount: '12.00',
+                  account: { id: 2, name: 'Savings' },
+                }),
+                makeTransaction({
+                  id: 2,
+                  date: '2024-01-20',
+                  category: 'BILL',
+                  amount: '8.25',
+                  account: { id: 2, name: 'Savings' },
+                }),
+              ],
+              totalElements: 2,
+              totalPages: 1,
+            })
+          );
+          component['form'].patchValue({
+            from: new Date('2024-01-01'),
+            to: new Date('2024-01-31'),
+            accountId: 2,
+          });
+
+          component['submit']();
+
+          expect(sumChartBuckets()).toBe(component['totalSpend']());
+          expect(sumChartBuckets()).toBe(20.25);
+        });
+
+        it('should match with both account and category filters combined', () => {
+          transactionListAllService.getAllTransactions.mockReturnValueOnce(
+            of({
+              transactionList: [
+                makeTransaction({
+                  id: 1,
+                  date: '2024-01-05',
+                  category: 'FOOD',
+                  amount: '12.00',
+                  account: { id: 2, name: 'Savings' },
+                }),
+                makeTransaction({
+                  id: 2,
+                  date: '2024-01-20',
+                  category: 'BILL',
+                  amount: '8.25',
+                  account: { id: 2, name: 'Savings' },
+                }),
+              ],
+              totalElements: 2,
+              totalPages: 1,
+            })
+          );
+          component['form'].patchValue({
+            from: new Date('2024-01-01'),
+            to: new Date('2024-01-31'),
+            accountId: 2,
+            categories: ['FOOD'],
+          });
+
+          component['submit']();
+
+          expect(sumChartBuckets()).toBe(component['totalSpend']());
+          expect(sumChartBuckets()).toBe(12);
+        });
+
+        it('should still match after a live (non-resubmitted) category filter change', () => {
+          transactionListAllService.getAllTransactions.mockReturnValue(
+            of({
+              transactionList: [
+                makeTransaction({ id: 1, date: '2024-01-01', category: 'FOOD', amount: '10.00' }),
+                makeTransaction({ id: 2, date: '2024-01-15', category: 'BILL', amount: '20.50' }),
+              ],
+              totalElements: 2,
+              totalPages: 1,
+            })
+          );
+          component['form'].patchValue({
+            from: new Date('2024-01-01'),
+            to: new Date('2024-01-31'),
+          });
+          component['submit']();
+
+          expect(sumChartBuckets()).toBe(component['totalSpend']());
+
+          component['form'].controls.categories.setValue(['FOOD']);
+
+          expect(sumChartBuckets()).toBe(component['totalSpend']());
+          expect(sumChartBuckets()).toBe(10);
+        });
+
+        it('should match over a large multi-page (weekly-granularity) result set', () => {
+          const largeTransactionList: ITransaction[] = Array.from(
+            { length: 250 },
+            (_, i) =>
+              makeTransaction({
+                id: i,
+                date: `2024-0${(i % 9) + 1}-01`,
+                amount: '2.00',
+                category: 'FOOD',
+              })
+          );
+          transactionListAllService.getAllTransactions.mockReturnValueOnce(
+            of({
+              transactionList: largeTransactionList,
+              totalElements: 250,
+              totalPages: 3,
+            })
+          );
+          component['form'].patchValue({
+            from: new Date('2024-01-01'),
+            to: new Date('2024-12-31'),
+          });
+
+          component['submit']();
+
+          expect(sumChartBuckets()).toBe(component['totalSpend']());
+          expect(sumChartBuckets()).toBe(500);
+        });
+      });
+    });
+
     describe('when the fetch fails', () => {
       it('should stop the spinner and notify the user', () => {
         const snackBar = TestBed.inject(MatSnackBar);

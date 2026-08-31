@@ -1,0 +1,60 @@
+:host {
+  --trend-line: #2a78d6;
+  --trend-point: #2a78d6;
+  --trend-gridline: rgba(0, 0, 0, 0.08);
+  --trend-label: rgba(0, 0, 0, 0.6);
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    --trend-line: #3987e5;
+    --trend-point: #3987e5;
+    --trend-gridline: rgba(255, 255, 255, 0.12);
+    --trend-label: rgba(255, 255, 255, 0.6);
+  }
+}
+
+.chart-card {
+  padding: 1.25rem 1.5rem;
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.gridline {
+  stroke: var(--trend-gridline);
+  stroke-width: 1;
+}
+
+.line {
+  stroke: var(--trend-line);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.point {
+  fill: var(--trend-point);
+  outline: none;
+}
+
+.point:hover,
+.point:focus-visible {
+  fill: var(--trend-line);
+  r: 5;
+}
+
+.y-label,
+.x-label {
+  fill: var(--trend-label);
+  font-size: 10px;
+}
+
+.empty-state {
+  padding: 2rem;
+  text-align: center;
+  opacity: 0.6;
+}
