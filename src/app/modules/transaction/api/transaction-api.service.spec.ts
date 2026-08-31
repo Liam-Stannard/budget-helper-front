@@ -78,6 +78,44 @@ describe('ApiService', () => {
 
       httpTestingController.verify();
     });
+
+    it('should include the category param when provided', () => {
+      service.getTransactionList({ category: 'FOOD' }).subscribe();
+
+      const req = httpTestingController.expectOne(
+        (r) => r.url === '/api/v1/transaction'
+      );
+      expect(req.request.params.get('category')).toBe('FOOD');
+      req.flush({ transactionList: [], totalElements: 0, totalPages: 0 });
+
+      httpTestingController.verify();
+    });
+
+    it('should map accountId to the account_id wire param when provided', () => {
+      service.getTransactionList({ accountId: 42 }).subscribe();
+
+      const req = httpTestingController.expectOne(
+        (r) => r.url === '/api/v1/transaction'
+      );
+      expect(req.request.params.get('account_id')).toBe('42');
+      expect(req.request.params.has('accountId')).toBe(false);
+      req.flush({ transactionList: [], totalElements: 0, totalPages: 0 });
+
+      httpTestingController.verify();
+    });
+
+    it('should not include category/account_id when not provided', () => {
+      service.getTransactionList().subscribe();
+
+      const req = httpTestingController.expectOne(
+        (r) => r.url === '/api/v1/transaction'
+      );
+      expect(req.request.params.has('category')).toBe(false);
+      expect(req.request.params.has('account_id')).toBe(false);
+      req.flush({ transactionList: [], totalElements: 0, totalPages: 0 });
+
+      httpTestingController.verify();
+    });
   });
 
   describe('getTransaction', () => {});

@@ -9,10 +9,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subject, of, throwError } from 'rxjs';
 import { TrendPageComponent } from './trend-page.component';
 import {
+  MockAccountApiService,
   MockAuthService,
   MockTransactionListAllService,
 } from '../../../../../test/mockService';
 import { AuthService } from '../../../../core/auth/auth.service';
+import { AccountApiService } from '../../../account/api/account-api.service';
 import { TransactionListAllService } from '../../../transaction/api/transaction-list-all.service';
 import {
   IGetTransactionListResponse,
@@ -37,6 +39,7 @@ describe('TrendPageComponent', () => {
   let component: TrendPageComponent;
   let fixture: ComponentFixture<TrendPageComponent>;
   let transactionListAllService: MockTransactionListAllService;
+  let accountApiService: MockAccountApiService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -60,6 +63,10 @@ describe('TrendPageComponent', () => {
           provide: TransactionListAllService,
           useClass: MockTransactionListAllService,
         },
+        {
+          provide: AccountApiService,
+          useClass: MockAccountApiService,
+        },
       ],
     }).compileComponents();
 
@@ -68,6 +75,9 @@ describe('TrendPageComponent', () => {
     transactionListAllService = TestBed.inject(
       TransactionListAllService
     ) as unknown as MockTransactionListAllService;
+    accountApiService = TestBed.inject(
+      AccountApiService
+    ) as unknown as MockAccountApiService;
     fixture.detectChanges();
   });
 
@@ -87,13 +97,19 @@ describe('TrendPageComponent', () => {
     expect(component['hasSearched']()).toBe(false);
   });
 
+  it('should return 0 count/spend (not throw) when accessed before any submission', () => {
+    expect(() => component['transactionCount']()).not.toThrow();
+    expect(component['transactionCount']()).toBe(0);
+    expect(component['totalSpend']()).toBe(0);
+  });
+
   describe('form validation', () => {
     it('should be invalid when "from" and "to" are empty', () => {
       expect(component['form'].invalid).toBe(true);
     });
 
     it('should be invalid when "from" is after "to"', () => {
-      component['form'].setValue({
+      component['form'].patchValue({
         from: new Date('2024-02-01'),
         to: new Date('2024-01-01'),
       });
@@ -105,7 +121,7 @@ describe('TrendPageComponent', () => {
     });
 
     it('should be valid when "from" is on or before "to"', () => {
-      component['form'].setValue({
+      component['form'].patchValue({
         from: new Date('2024-01-01'),
         to: new Date('2024-01-31'),
       });
@@ -114,7 +130,7 @@ describe('TrendPageComponent', () => {
     });
 
     it('should be valid (single-day range) when "from" and "to" are the same day', () => {
-      component['form'].setValue({
+      component['form'].patchValue({
         from: new Date('2024-01-15'),
         to: new Date('2024-01-15'),
       });
@@ -123,7 +139,7 @@ describe('TrendPageComponent', () => {
     });
 
     it('should disable the submit button and show an error message in the DOM when "from" is after "to"', () => {
-      component['form'].setValue({
+      component['form'].patchValue({
         from: new Date('2024-02-01'),
         to: new Date('2024-01-01'),
       });
@@ -142,14 +158,14 @@ describe('TrendPageComponent', () => {
     });
 
     it('should enable the submit button and show no error message once the range becomes valid', () => {
-      component['form'].setValue({
+      component['form'].patchValue({
         from: new Date('2024-02-01'),
         to: new Date('2024-01-01'),
       });
       component['form'].markAllAsTouched();
       fixture.detectChanges();
 
-      component['form'].setValue({
+      component['form'].patchValue({
         from: new Date('2024-01-01'),
         to: new Date('2024-01-31'),
       });
@@ -178,7 +194,7 @@ describe('TrendPageComponent', () => {
     });
 
     it('should not show the range error before the fields are touched, even with an invalid range (pristine form)', () => {
-      component['form'].setValue({
+      component['form'].patchValue({
         from: new Date('2024-02-01'),
         to: new Date('2024-01-01'),
       });
@@ -201,7 +217,7 @@ describe('TrendPageComponent', () => {
     });
 
     it('should fetch transactions for the selected range', () => {
-      component['form'].setValue({
+      component['form'].patchValue({
         from: new Date('2024-01-01'),
         to: new Date('2024-01-31'),
       });
@@ -211,6 +227,7 @@ describe('TrendPageComponent', () => {
       expect(transactionListAllService.getAllTransactions).toHaveBeenCalledWith({
         from: '2024-01-01',
         to: '2024-01-31',
+        accountId: undefined,
       });
       expect(component['loading']()).toBe(false);
       expect(component['hasSearched']()).toBe(true);
@@ -227,7 +244,7 @@ describe('TrendPageComponent', () => {
           totalPages: 1,
         })
       );
-      component['form'].setValue({
+      component['form'].patchValue({
         from: new Date('2024-01-01'),
         to: new Date('2024-01-31'),
       });
@@ -246,7 +263,7 @@ describe('TrendPageComponent', () => {
           totalPages: 0,
         })
       );
-      component['form'].setValue({
+      component['form'].patchValue({
         from: new Date('2024-01-01'),
         to: new Date('2024-01-31'),
       });
@@ -259,13 +276,13 @@ describe('TrendPageComponent', () => {
 
       const compiled = fixture.nativeElement as HTMLElement;
       expect(compiled.querySelector('.empty-state')?.textContent).toContain(
-        'No transactions in this range.'
+        'No transactions match this range and filters.'
       );
       expect(compiled.querySelector('.stat-row')).toBeNull();
     });
 
     it('should call the page-following TransactionListAllService (not a raw single-page fetch)', () => {
-      component['form'].setValue({
+      component['form'].patchValue({
         from: new Date('2024-01-01'),
         to: new Date('2024-01-31'),
       });
@@ -281,6 +298,7 @@ describe('TrendPageComponent', () => {
       expect(transactionListAllService.getAllTransactions).toHaveBeenCalledWith({
         from: '2024-01-01',
         to: '2024-01-31',
+        accountId: undefined,
       });
     });
 
@@ -297,7 +315,7 @@ describe('TrendPageComponent', () => {
           totalPages: 3,
         })
       );
-      component['form'].setValue({
+      component['form'].patchValue({
         from: new Date('2024-01-01'),
         to: new Date('2024-12-31'),
       });
@@ -322,13 +340,13 @@ describe('TrendPageComponent', () => {
           .mockReturnValueOnce(firstResponse$)
           .mockReturnValueOnce(secondResponse$);
 
-        component['form'].setValue({
+        component['form'].patchValue({
           from: new Date('2024-01-01'),
           to: new Date('2024-01-31'),
         });
         component['submit'](); // first submission - left in-flight
 
-        component['form'].setValue({
+        component['form'].patchValue({
           from: new Date('2024-02-01'),
           to: new Date('2024-02-29'),
         });
@@ -355,12 +373,69 @@ describe('TrendPageComponent', () => {
         expect(component['loading']()).toBe(false);
       });
 
+      it("should show the second submission's result (not the first, stale one) when only the account filter changes between rapid resubmissions", () => {
+        const firstResponse$ = new Subject<IGetTransactionListResponse>();
+        const secondResponse$ = new Subject<IGetTransactionListResponse>();
+        transactionListAllService.getAllTransactions
+          .mockReturnValueOnce(firstResponse$)
+          .mockReturnValueOnce(secondResponse$);
+
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-31'),
+          accountId: 1,
+        });
+        component['submit'](); // first submission (account 1) - left in-flight
+
+        component['form'].patchValue({ accountId: 2 });
+        component['submit'](); // second submission (account 2), before the first resolves
+
+        // The stale first request (account 1) resolves last - it must not overwrite the
+        // second (account 2) submission's result.
+        firstResponse$.next({
+          transactionList: [
+            makeTransaction({
+              id: 1,
+              amount: '999.00',
+              account: { id: 1, name: 'Main' },
+            }),
+          ],
+          totalElements: 1,
+          totalPages: 1,
+        });
+        firstResponse$.complete();
+
+        secondResponse$.next({
+          transactionList: [
+            makeTransaction({
+              id: 2,
+              amount: '20.00',
+              account: { id: 2, name: 'Savings' },
+            }),
+          ],
+          totalElements: 1,
+          totalPages: 1,
+        });
+        secondResponse$.complete();
+
+        expect(
+          transactionListAllService.getAllTransactions
+        ).toHaveBeenNthCalledWith(2, {
+          from: '2024-01-01',
+          to: '2024-01-31',
+          accountId: 2,
+        });
+        expect(component['transactionCount']()).toBe(1);
+        expect(component['totalSpend']()).toBe(20);
+        expect(component['loading']()).toBe(false);
+      });
+
       it('should disable the submit button while a request is in flight, preventing an accidental resubmission', () => {
         const response$ = new Subject<IGetTransactionListResponse>();
         transactionListAllService.getAllTransactions.mockReturnValueOnce(
           response$
         );
-        component['form'].setValue({
+        component['form'].patchValue({
           from: new Date('2024-01-01'),
           to: new Date('2024-01-31'),
         });
@@ -382,6 +457,377 @@ describe('TrendPageComponent', () => {
       });
     });
 
+    describe('account filter', () => {
+      it('should populate the account dropdown from AccountApiService', () => {
+        expect(accountApiService.getAccountList).toHaveBeenCalled();
+        expect(component['accounts']()).toEqual([account]);
+      });
+
+      it('should send the selected accountId to the backend-driven fetch', () => {
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-31'),
+          accountId: 2,
+        });
+
+        component['submit']();
+
+        expect(transactionListAllService.getAllTransactions).toHaveBeenCalledWith({
+          from: '2024-01-01',
+          to: '2024-01-31',
+          accountId: 2,
+        });
+      });
+
+      it('should omit accountId (all accounts) when left at its default', () => {
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-31'),
+        });
+
+        component['submit']();
+
+        expect(transactionListAllService.getAllTransactions).toHaveBeenCalledWith({
+          from: '2024-01-01',
+          to: '2024-01-31',
+          accountId: undefined,
+        });
+        // Inspect the actual params object, not just the assertion sugar above - confirm
+        // no accountId key sneaks through as `0`/`''` instead of a genuinely absent value.
+        const params = (
+          transactionListAllService.getAllTransactions.mock
+            .calls[0] as unknown as [{ accountId?: unknown }]
+        )[0];
+        expect(params.accountId).toBeUndefined();
+        expect(Object.is(params.accountId, 0)).toBe(false);
+        expect(Object.is(params.accountId, '')).toBe(false);
+      });
+
+      it('should normalize a null accountId (an untouched/reset select control\'s raw value) to undefined rather than sending it as-is', () => {
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-31'),
+        });
+        // Simulate a reset mat-select control, whose raw form value comes back as `null`
+        // rather than `undefined` (per the comment in trend-page.component.ts).
+        component['form'].controls.accountId.setValue(
+          null as unknown as number
+        );
+
+        component['submit']();
+
+        const params = (
+          transactionListAllService.getAllTransactions.mock
+            .calls[0] as unknown as [{ accountId?: unknown }]
+        )[0];
+        expect(params.accountId).toBeUndefined();
+        expect(Object.is(params.accountId, null)).toBe(false);
+      });
+    });
+
+    describe('category filter (client-side, multi-select)', () => {
+      it('should not restrict results when no category is selected', () => {
+        transactionListAllService.getAllTransactions.mockReturnValueOnce(
+          of({
+            transactionList: [
+              makeTransaction({ id: 1, category: 'FOOD', amount: '10.00' }),
+              makeTransaction({ id: 2, category: 'BILL', amount: '20.00' }),
+            ],
+            totalElements: 2,
+            totalPages: 1,
+          })
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-31'),
+        });
+
+        component['submit']();
+
+        expect(component['transactionCount']()).toBe(2);
+      });
+
+      it('should restrict the summary to transactions matching any of the selected categories', () => {
+        transactionListAllService.getAllTransactions.mockReturnValueOnce(
+          of({
+            transactionList: [
+              makeTransaction({ id: 1, category: 'FOOD', amount: '10.00' }),
+              makeTransaction({ id: 2, category: 'BILL', amount: '20.00' }),
+              makeTransaction({ id: 3, category: 'CLOTHING', amount: '30.00' }),
+            ],
+            totalElements: 3,
+            totalPages: 1,
+          })
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-31'),
+          categories: ['FOOD', 'BILL'],
+        });
+
+        component['submit']();
+
+        expect(component['transactionCount']()).toBe(2);
+        expect(component['totalSpend']()).toBe(30);
+      });
+
+      it('should not drive a second/separate fetch when only categories are selected - the same single fetch call is reused', () => {
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-31'),
+          categories: ['FOOD'],
+        });
+
+        component['submit']();
+
+        expect(transactionListAllService.getAllTransactions).toHaveBeenCalledTimes(
+          1
+        );
+      });
+
+      it('should show the empty state when a category filter legitimately excludes every fetched transaction', () => {
+        transactionListAllService.getAllTransactions.mockReturnValueOnce(
+          of({
+            transactionList: [
+              makeTransaction({ id: 1, category: 'FOOD', amount: '10.00' }),
+            ],
+            totalElements: 1,
+            totalPages: 1,
+          })
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-31'),
+          categories: ['CLOTHING'],
+        });
+
+        component['submit']();
+        fixture.detectChanges();
+
+        expect(component['transactionCount']()).toBe(0);
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('.empty-state')).not.toBeNull();
+        expect(compiled.querySelector('.stat-row')).toBeNull();
+      });
+
+      it('should update the summary immediately when the categories control is toggled, without calling submit - it is a pure client-side filter and applies live', () => {
+        transactionListAllService.getAllTransactions.mockReturnValue(
+          of({
+            transactionList: [
+              makeTransaction({ id: 1, category: 'FOOD', amount: '10.00' }),
+              makeTransaction({ id: 2, category: 'BILL', amount: '20.00' }),
+            ],
+            totalElements: 2,
+            totalPages: 1,
+          })
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-31'),
+        });
+        component['submit'](); // initial submit with no category filter applied
+
+        expect(component['transactionCount']()).toBe(2);
+        expect(component['totalSpend']()).toBe(30);
+
+        // Toggle the categories control WITHOUT resubmitting - mirrors a user changing the
+        // multi-select but not (yet) pressing "View trends".
+        component['form'].controls.categories.setValue(['FOOD']);
+        fixture.detectChanges();
+
+        // The category filter is applied client-side against the already-fetched range, so
+        // it takes effect immediately as the multi-select changes - no resubmit needed.
+        expect(component['transactionCount']()).toBe(1);
+        expect(component['totalSpend']()).toBe(10);
+
+        // Clearing the filter live restores the full (already-fetched) result too.
+        component['form'].controls.categories.setValue([]);
+        fixture.detectChanges();
+
+        expect(component['transactionCount']()).toBe(2);
+        expect(component['totalSpend']()).toBe(30);
+      });
+
+      it('should not throw and should keep showing the previous (empty/undefined) result while a fetch is in flight, even if the categories control is changed mid-flight', () => {
+        const response$ = new Subject<IGetTransactionListResponse>();
+        transactionListAllService.getAllTransactions.mockReturnValueOnce(
+          response$
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-31'),
+        });
+
+        component['submit'](); // in flight - transactions() still undefined
+
+        expect(() => {
+          component['form'].controls.categories.setValue(['FOOD']);
+          fixture.detectChanges();
+        }).not.toThrow();
+
+        // filteredTransactions/transactionCount/totalSpend must tolerate `transactions()`
+        // still being `undefined` mid-fetch, rather than computing against stale/garbage data.
+        expect(component['transactionCount']()).toBe(0);
+        expect(component['totalSpend']()).toBe(0);
+        expect(component['hasSearched']()).toBe(false);
+
+        response$.next({
+          transactionList: [
+            makeTransaction({ id: 1, category: 'FOOD', amount: '10.00' }),
+            makeTransaction({ id: 2, category: 'BILL', amount: '20.00' }),
+          ],
+          totalElements: 2,
+          totalPages: 1,
+        });
+        response$.complete();
+
+        // The category change made mid-flight (before the fetch resolved) still applies live
+        // once the data does arrive, since it's tracked reactively rather than snapshotted.
+        expect(component['transactionCount']()).toBe(1);
+        expect(component['totalSpend']()).toBe(10);
+      });
+    });
+
+    describe('INCOME category behaviour', () => {
+      it('should include INCOME in the unfiltered transaction count but exclude it from total spend', () => {
+        transactionListAllService.getAllTransactions.mockReturnValueOnce(
+          of({
+            transactionList: [
+              makeTransaction({ id: 1, category: 'FOOD', amount: '10.00' }),
+              makeTransaction({ id: 2, category: 'INCOME', amount: '500.00' }),
+            ],
+            totalElements: 2,
+            totalPages: 1,
+          })
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-31'),
+        });
+
+        component['submit']();
+
+        expect(component['transactionCount']()).toBe(2); // INCOME is counted
+        expect(component['totalSpend']()).toBe(10); // INCOME is excluded from spend
+      });
+
+      it('should list INCOME as a selectable category filter option', () => {
+        expect(
+          component['categoryOptions'].map((option) => option.value)
+        ).toContain('INCOME');
+      });
+
+      it('should show the correct non-zero total when explicitly filtering to the INCOME category - an explicit selection is respected as-is, not silently stripped back out', () => {
+        transactionListAllService.getAllTransactions.mockReturnValueOnce(
+          of({
+            transactionList: [
+              makeTransaction({ id: 1, category: 'FOOD', amount: '10.00' }),
+              makeTransaction({ id: 2, category: 'INCOME', amount: '500.00' }),
+            ],
+            totalElements: 2,
+            totalPages: 1,
+          })
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-31'),
+          categories: ['INCOME'],
+        });
+
+        component['submit']();
+
+        expect(component['transactionCount']()).toBe(1);
+        expect(component['totalSpend']()).toBe(500);
+      });
+
+      it('should still exclude INCOME from the total when explicitly filtering to a non-INCOME category - INCOME was never in the filtered set to begin with', () => {
+        transactionListAllService.getAllTransactions.mockReturnValueOnce(
+          of({
+            transactionList: [
+              makeTransaction({ id: 1, category: 'FOOD', amount: '10.00' }),
+              makeTransaction({ id: 2, category: 'INCOME', amount: '500.00' }),
+            ],
+            totalElements: 2,
+            totalPages: 1,
+          })
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-31'),
+          categories: ['FOOD'],
+        });
+
+        component['submit']();
+
+        expect(component['transactionCount']()).toBe(1);
+        expect(component['totalSpend']()).toBe(10);
+      });
+
+      it('should default to excluding INCOME from the total when no category filter is applied', () => {
+        transactionListAllService.getAllTransactions.mockReturnValueOnce(
+          of({
+            transactionList: [
+              makeTransaction({ id: 1, category: 'FOOD', amount: '10.00' }),
+              makeTransaction({ id: 2, category: 'INCOME', amount: '500.00' }),
+            ],
+            totalElements: 2,
+            totalPages: 1,
+          })
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-31'),
+        });
+
+        component['submit']();
+
+        expect(component['transactionCount']()).toBe(2);
+        expect(component['totalSpend']()).toBe(10);
+      });
+    });
+
+    describe('combined account + category filters', () => {
+      it('should apply the client-side category filter on top of the backend account-filtered response, matching both', () => {
+        transactionListAllService.getAllTransactions.mockReturnValueOnce(
+          of({
+            transactionList: [
+              makeTransaction({
+                id: 1,
+                category: 'FOOD',
+                amount: '10.00',
+                account: { id: 2, name: 'Savings' },
+              }),
+              makeTransaction({
+                id: 2,
+                category: 'BILL',
+                amount: '20.00',
+                account: { id: 2, name: 'Savings' },
+              }),
+            ],
+            totalElements: 2,
+            totalPages: 1,
+          })
+        );
+        component['form'].patchValue({
+          from: new Date('2024-01-01'),
+          to: new Date('2024-01-31'),
+          accountId: 2,
+          categories: ['FOOD'],
+        });
+
+        component['submit']();
+
+        expect(transactionListAllService.getAllTransactions).toHaveBeenCalledWith({
+          from: '2024-01-01',
+          to: '2024-01-31',
+          accountId: 2,
+        });
+        // Only the FOOD transaction from the (already account-filtered) response survives.
+        expect(component['transactionCount']()).toBe(1);
+        expect(component['totalSpend']()).toBe(10);
+      });
+    });
+
     describe('when the fetch fails', () => {
       it('should stop the spinner and notify the user', () => {
         const snackBar = TestBed.inject(MatSnackBar);
@@ -389,7 +835,7 @@ describe('TrendPageComponent', () => {
         transactionListAllService.getAllTransactions.mockReturnValueOnce(
           throwError(() => new Error('network down'))
         );
-        component['form'].setValue({
+        component['form'].patchValue({
           from: new Date('2024-01-01'),
           to: new Date('2024-01-31'),
         });
