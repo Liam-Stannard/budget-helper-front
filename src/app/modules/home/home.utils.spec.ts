@@ -4,6 +4,7 @@ import {
   filterCurrentMonth,
   filterExpenses,
   filterPreviousMonth,
+  getDailyCumulativeSpend,
   getMonthOverMonthDelta,
   getTopCategory,
   getTotalAmount,
@@ -160,6 +161,122 @@ describe('home.utils', () => {
         category: 'BILL',
         amount: 50,
       });
+    });
+  });
+
+  describe('getDailyCumulativeSpend', () => {
+    const monthStart = dayjs('2024-06-01');
+
+    it('should return an empty array when throughDay is 0', () => {
+      expect(getDailyCumulativeSpend([], monthStart, 0)).toEqual([]);
+    });
+
+    it('should return one entry per day up to throughDay, with a running total', () => {
+      const transactions = [
+        makeTransaction({ date: '2024-06-01', amount: '10.00' }),
+        makeTransaction({ date: '2024-06-02', amount: '5.00' }),
+        makeTransaction({ date: '2024-06-03', amount: '2.50' }),
+      ];
+
+      expect(getDailyCumulativeSpend(transactions, monthStart, 3)).toEqual([
+        { day: 1, date: '2024-06-01', cumulativeAmount: 10 },
+        { day: 2, date: '2024-06-02', cumulativeAmount: 15 },
+        { day: 3, date: '2024-06-03', cumulativeAmount: 17.5 },
+      ]);
+    });
+
+    it('should carry the running total forward on days with no transactions', () => {
+      const transactions = [
+        makeTransaction({ date: '2024-06-01', amount: '10.00' }),
+      ];
+
+      expect(getDailyCumulativeSpend(transactions, monthStart, 3)).toEqual([
+        { day: 1, date: '2024-06-01', cumulativeAmount: 10 },
+        { day: 2, date: '2024-06-02', cumulativeAmount: 10 },
+        { day: 3, date: '2024-06-03', cumulativeAmount: 10 },
+      ]);
+    });
+
+    it('should sum multiple transactions on the same day', () => {
+      const transactions = [
+        makeTransaction({ date: '2024-06-01', amount: '10.00' }),
+        makeTransaction({ date: '2024-06-01', amount: '4.00' }),
+      ];
+
+      expect(getDailyCumulativeSpend(transactions, monthStart, 1)).toEqual([
+        { day: 1, date: '2024-06-01', cumulativeAmount: 14 },
+      ]);
+    });
+
+    it('should render a single-day series when throughDay is 1', () => {
+      const transactions = [
+        makeTransaction({ date: '2024-06-01', amount: '12.00' }),
+      ];
+
+      const series = getDailyCumulativeSpend(transactions, monthStart, 1);
+
+      expect(series).toHaveLength(1);
+      expect(series[0]).toEqual({
+        day: 1,
+        date: '2024-06-01',
+        cumulativeAmount: 12,
+      });
+    });
+
+    it('should ignore transactions outside the requested day range', () => {
+      const transactions = [
+        makeTransaction({ date: '2024-06-05', amount: '99.00' }),
+      ];
+
+      expect(getDailyCumulativeSpend(transactions, monthStart, 3)).toEqual([
+        { day: 1, date: '2024-06-01', cumulativeAmount: 0 },
+        { day: 2, date: '2024-06-02', cumulativeAmount: 0 },
+        { day: 3, date: '2024-06-03', cumulativeAmount: 0 },
+      ]);
+    });
+
+    it('should make each day equal the sum of every day up to and including it, not just that day alone', () => {
+      // day 2 has no transactions of its own, so if the running total were reset per-day
+      // (rather than truly cumulative), day 2 and day 4 would incorrectly read 0.
+      const transactions = [
+        makeTransaction({ date: '2024-06-01', amount: '10.00' }),
+        makeTransaction({ date: '2024-06-03', amount: '5.00' }),
+        makeTransaction({ date: '2024-06-04', amount: '1.00' }),
+      ];
+
+      const series = getDailyCumulativeSpend(transactions, monthStart, 4);
+
+      expect(series.map((point) => point.cumulativeAmount)).toEqual([
+        10, // day 1: 10
+        10, // day 2: 10 + 0, carried forward (not reset to 0)
+        15, // day 3: 10 + 0 + 5
+        16, // day 4: 10 + 0 + 5 + 1, the exact sum of days 1..4
+      ]);
+    });
+
+    it('should decrease the running total on a day with a negative (refund) amount', () => {
+      const transactions = [
+        makeTransaction({ date: '2024-06-01', amount: '20.00' }),
+        makeTransaction({ date: '2024-06-02', amount: '-5.00' }),
+        makeTransaction({ date: '2024-06-03', amount: '3.00' }),
+      ];
+
+      expect(getDailyCumulativeSpend(transactions, monthStart, 3)).toEqual([
+        { day: 1, date: '2024-06-01', cumulativeAmount: 20 },
+        { day: 2, date: '2024-06-02', cumulativeAmount: 15 },
+        { day: 3, date: '2024-06-03', cumulativeAmount: 18 },
+      ]);
+    });
+
+    it('should not clamp the running total at zero when refunds outweigh spend so far', () => {
+      const transactions = [
+        makeTransaction({ date: '2024-06-01', amount: '5.00' }),
+        makeTransaction({ date: '2024-06-02', amount: '-20.00' }),
+      ];
+
+      const series = getDailyCumulativeSpend(transactions, monthStart, 2);
+
+      expect(series[1].cumulativeAmount).toBe(-15);
     });
   });
 

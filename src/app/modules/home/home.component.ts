@@ -1,17 +1,20 @@
 import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import dayjs from 'dayjs';
 import { AbstractComponent } from '../../core/component/abstract/abstract.component';
 import { TransactionApiService } from '../transaction/api/transaction-api.service';
 import { ITransaction } from '../transaction/shared/transaction.interface';
 import { CATEGORY_OPTIONS } from '../transaction/shared/transcations.constants';
 import { StatTileComponent } from './components/stat-tile/stat-tile.component';
 import { CategoryBreakdownChartComponent } from './components/category-breakdown-chart/category-breakdown-chart.component';
+import { CumulativeSpendChartComponent } from './components/cumulative-spend-chart/cumulative-spend-chart.component';
 import {
   currentAndPreviousMonthRange,
   filterCurrentMonth,
   filterExpenses,
   filterPreviousMonth,
+  getDailyCumulativeSpend,
   getMonthOverMonthDelta,
   getTopCategory,
   getTotalAmount,
@@ -26,6 +29,7 @@ import {
     MatProgressBarModule,
     StatTileComponent,
     CategoryBreakdownChartComponent,
+    CumulativeSpendChartComponent,
   ],
   providers: [CurrencyPipe],
   templateUrl: './home.component.html',
@@ -80,6 +84,24 @@ export class HomeComponent
   protected breakdown = computed(() =>
     sumByCategory(filterExpenses(this.currentMonthTransactions()))
   );
+
+  protected currentMonthCumulativeSpend = computed(() =>
+    getDailyCumulativeSpend(
+      filterExpenses(this.currentMonthTransactions()),
+      dayjs().startOf('month'),
+      dayjs().date()
+    )
+  );
+
+  protected previousMonthCumulativeSpend = computed(() => {
+    const previousMonthStart = dayjs().subtract(1, 'month').startOf('month');
+
+    return getDailyCumulativeSpend(
+      filterExpenses(this.previousMonthTransactions()),
+      previousMonthStart,
+      previousMonthStart.daysInMonth()
+    );
+  });
 
   protected topCategoryLabel = computed(() => {
     const top = getTopCategory(this.breakdown());
