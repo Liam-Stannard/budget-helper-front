@@ -56,6 +56,10 @@ export class MockApiService {
   deleteTransaction = jest.fn(() => of(undefined));
 }
 
+export class MockTransactionListAllService {
+  getAllTransactions = jest.fn(() => of(getTransactionsResponse));
+}
+
 const getAccountsResponse: IGetAccountListResponse = {
   accountList: [account1],
 };

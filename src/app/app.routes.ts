@@ -7,6 +7,7 @@ import { TransactionPageComponent } from './modules/transaction/components/trans
 import { TransactionDetailsComponent } from './modules/transaction/components/transaction-details/transaction-details.component';
 import { AccountListWrapperComponent } from './modules/account/components/account-list-wrapper/account-list-wrapper.component';
 import { AccountDetailsComponent } from './modules/account/components/account-details/account-details.component';
+import { TrendPageComponent } from './modules/trend/components/trend-page/trend-page.component';
 
 export const routes: Routes = [
   {
@@ -48,6 +49,12 @@ export const routes: Routes = [
     component: AccountListWrapperComponent,
     path: 'accounts',
     title: 'Accounts',
+    canActivate: [authGuard()],
+  },
+  {
+    component: TrendPageComponent,
+    path: 'trends',
+    title: 'Spending Trends',
     canActivate: [authGuard()],
   },
   //TODO - add canDeactivate
