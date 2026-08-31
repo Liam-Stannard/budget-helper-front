@@ -11,6 +11,10 @@
   margin: 1rem 0 2rem;
 }
 
+app-trend-line-chart {
+  display: block;
+}
+
 .empty-state {
   color: var(--mat-app-text-color);
   opacity: 0.7;

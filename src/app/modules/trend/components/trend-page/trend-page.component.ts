@@ -22,7 +22,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import dayjs from 'dayjs';
-import { EMPTY, Subject, catchError, switchMap } from 'rxjs';
+import { EMPTY, Subject, catchError, map, switchMap } from 'rxjs';
 import { AbstractComponent } from '../../../../core/component/abstract/abstract.component';
 import { dateRangeValidator } from '../../../../shared/validators/validator';
 import { MenuOption } from '../../../../shared/interface/menu-options.interfaces';
@@ -33,8 +33,14 @@ import { TransactionListAllService } from '../../../transaction/api/transaction-
 import { ITransaction } from '../../../transaction/shared/transaction.interface';
 import { Category } from '../../../transaction/shared/transaction.types';
 import { CATEGORY_OPTIONS } from '../../../transaction/shared/transcations.constants';
+import { TrendLineChartComponent } from './components/trend-line-chart/trend-line-chart.component';
 import { ITrendDateRangeForm } from './trend-page.interfaces';
-import { filterByCategories, getTotalSpend } from './trend-page.utils';
+import {
+  bucketTransactions,
+  filterByCategories,
+  getSpendTransactions,
+  getTotalSpend,
+} from './trend-page.utils';
 
 @Component({
   selector: 'app-trend-page',
@@ -50,6 +56,7 @@ import { filterByCategories, getTotalSpend } from './trend-page.utils';
     MatProgressBarModule,
     MatSelectModule,
     StatTileComponent,
+    TrendLineChartComponent,
   ],
   providers: [CurrencyPipe],
   templateUrl: './trend-page.component.html',
@@ -68,6 +75,14 @@ export class TrendPageComponent
   /** `undefined` until the first successful fetch, so the summary/empty-state only render
    * once the user has actually searched a range. */
   protected transactions = signal<ITransaction[] | undefined>(undefined);
+
+  /** The `from`/`to` bounds of the last successfully-fetched range, kept alongside
+   * `transactions` (rather than read live off the form) so the trend chart buckets the full
+   * range the user actually searched - including any leading/trailing buckets with no
+   * transactions - even while they're mid-edit on a new, not-yet-submitted date range. */
+  protected submittedRange = signal<{ from: string; to: string } | undefined>(
+    undefined
+  );
 
   /** Live value of the category filter - the backend only supports filtering to a single
    * category per request, so a multi-select is instead applied client-side against the
@@ -91,6 +106,22 @@ export class TrendPageComponent
   protected totalSpend = computed(() =>
     getTotalSpend(this.filteredTransactions(), this.appliedCategories())
   );
+
+  /** Same "spend" set the total spend tile sums - shared so the chart's bucket totals always
+   * add up to that tile's figure. */
+  private spendTransactions = computed(() =>
+    getSpendTransactions(this.filteredTransactions(), this.appliedCategories())
+  );
+
+  protected trendBuckets = computed(() => {
+    const range = this.submittedRange();
+
+    if (!range) {
+      return [];
+    }
+
+    return bucketTransactions(this.spendTransactions(), range.from, range.to);
+  });
 
   /** Drives the actual fetch, decoupled from `submit()` itself, so `switchMap` can cancel
    * any in-flight request as soon as a new one is submitted - a stale response arriving
@@ -120,6 +151,7 @@ export class TrendPageComponent
       .pipe(
         switchMap((range) =>
           this.transactionListAllService.getAllTransactions(range).pipe(
+            map((res) => ({ res, range })),
             catchError((err) => {
               this.handleError('Failed to load transactions', err);
               return EMPTY;
@@ -128,8 +160,9 @@ export class TrendPageComponent
         ),
         takeUntilDestroyed()
       )
-      .subscribe((res) => {
+      .subscribe(({ res, range }) => {
         this.transactions.set(res.transactionList);
+        this.submittedRange.set({ from: range.from, to: range.to });
         this.loading.set(false);
       });
   }
