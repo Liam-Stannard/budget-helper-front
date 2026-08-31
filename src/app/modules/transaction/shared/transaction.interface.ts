@@ -26,6 +26,11 @@ export type ITransactionListParams = {
   size?: number;
   /** `"<field>,<direction>"`, e.g. `"date,desc"`. */
   sort?: string;
+  /** Filters to a single category. Omit for all categories. */
+  category?: Category;
+  /** Filters to a single account. Omit for all accounts. 403 if it belongs to another
+   * user, 404 if it doesn't exist. */
+  accountId?: number;
 };
 export type IGetTransactionResponse = {
   transaction: ITransaction;

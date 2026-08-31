@@ -1,5 +1,12 @@
-import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  Signal,
+  computed,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import {
   FormBuilder,
@@ -13,15 +20,21 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSelectModule } from '@angular/material/select';
 import dayjs from 'dayjs';
 import { EMPTY, Subject, catchError, switchMap } from 'rxjs';
 import { AbstractComponent } from '../../../../core/component/abstract/abstract.component';
 import { dateRangeValidator } from '../../../../shared/validators/validator';
+import { MenuOption } from '../../../../shared/interface/menu-options.interfaces';
 import { StatTileComponent } from '../../../home/components/stat-tile/stat-tile.component';
+import { AccountApiService } from '../../../account/api/account-api.service';
+import { IAccount } from '../../../account/shared/account.interface';
 import { TransactionListAllService } from '../../../transaction/api/transaction-list-all.service';
 import { ITransaction } from '../../../transaction/shared/transaction.interface';
+import { Category } from '../../../transaction/shared/transaction.types';
+import { CATEGORY_OPTIONS } from '../../../transaction/shared/transcations.constants';
 import { ITrendDateRangeForm } from './trend-page.interfaces';
-import { filterExpenses, getTotalAmount } from './trend-page.utils';
+import { filterByCategories, getTotalSpend } from './trend-page.utils';
 
 @Component({
   selector: 'app-trend-page',
@@ -35,6 +48,7 @@ import { filterExpenses, getTotalAmount } from './trend-page.utils';
     MatFormFieldModule,
     MatInputModule,
     MatProgressBarModule,
+    MatSelectModule,
     StatTileComponent,
   ],
   providers: [CurrencyPipe],
@@ -47,18 +61,35 @@ export class TrendPageComponent
 {
   protected form: FormGroup<ITrendDateRangeForm>;
 
+  protected categoryOptions: MenuOption<string, Category>[] = CATEGORY_OPTIONS;
+
+  protected accounts = signal<IAccount[]>([]);
+
   /** `undefined` until the first successful fetch, so the summary/empty-state only render
    * once the user has actually searched a range. */
   protected transactions = signal<ITransaction[] | undefined>(undefined);
 
+  /** Live value of the category filter - the backend only supports filtering to a single
+   * category per request, so a multi-select is instead applied client-side against the
+   * already-fetched (unfiltered-by-category) range, rather than driving a second/separate
+   * fetch path. Since applying it doesn't require a fetch, it tracks the categories control
+   * directly rather than being snapshotted at submit time, so toggling a category applies
+   * instantly - unlike the date range/account filter, which do drive a fetch and so still
+   * require submit. */
+  private appliedCategories!: Signal<Category[]>;
+
+  protected filteredTransactions = computed(() =>
+    filterByCategories(this.transactions() ?? [], this.appliedCategories())
+  );
+
   protected hasSearched = computed(() => this.transactions() !== undefined);
 
   protected transactionCount = computed(
-    () => (this.transactions() ?? []).length
+    () => this.filteredTransactions().length
   );
 
   protected totalSpend = computed(() =>
-    getTotalAmount(filterExpenses(this.transactions() ?? []))
+    getTotalSpend(this.filteredTransactions(), this.appliedCategories())
   );
 
   /** Drives the actual fetch, decoupled from `submit()` itself, so `switchMap` can cancel
@@ -67,14 +98,23 @@ export class TrendPageComponent
    * per submit has no such protection), which matters here because
    * `TransactionListAllService.getAllTransactions()` can involve several sequential/
    * concurrent HTTP requests and take noticeably longer than a single request. */
-  private submit$ = new Subject<{ from: string; to: string }>();
+  private submit$ = new Subject<{
+    from: string;
+    to: string;
+    accountId?: number;
+  }>();
 
   constructor(
     private fb: FormBuilder,
-    private transactionListAllService: TransactionListAllService
+    private transactionListAllService: TransactionListAllService,
+    private accountApiService: AccountApiService
   ) {
     super();
     this.form = this.formInit();
+    this.appliedCategories = toSignal(
+      this.form.controls.categories.valueChanges,
+      { initialValue: this.form.controls.categories.value }
+    );
 
     this.submit$
       .pipe(
@@ -99,10 +139,22 @@ export class TrendPageComponent
     // No data is fetched on init - the range is picked by the user - so don't show a spinner
     // until they've submitted the form.
     this.loading.set(false);
+    this.loadAccounts();
   }
 
   override ngOnDestroy(): void {
     super.ngOnDestroy();
+  }
+
+  protected loadAccounts(): void {
+    this.accountApiService.getAccountList().subscribe({
+      next: (res) => {
+        this.accounts.set(res.accountList);
+      },
+      error: (err) => {
+        this.errorNotifier.notify('Failed to load accounts', err);
+      },
+    });
   }
 
   protected formInit(): FormGroup<ITrendDateRangeForm> {
@@ -110,6 +162,10 @@ export class TrendPageComponent
       {
         from: this.fb.nonNullable.control(undefined, [Validators.required]),
         to: this.fb.nonNullable.control(undefined, [Validators.required]),
+        accountId: this.fb.nonNullable.control<number | undefined>(
+          undefined
+        ),
+        categories: this.fb.nonNullable.control<Category[]>([]),
       },
       { validators: [dateRangeValidator('from', 'to')] }
     );
@@ -120,7 +176,7 @@ export class TrendPageComponent
       return;
     }
 
-    const { from, to } = this.form.getRawValue();
+    const { from, to, accountId } = this.form.getRawValue();
 
     if (!from || !to) {
       return;
@@ -130,6 +186,10 @@ export class TrendPageComponent
     this.submit$.next({
       from: dayjs(from).format('YYYY-MM-DD'),
       to: dayjs(to).format('YYYY-MM-DD'),
+      // The "All accounts" option's value is `undefined`, but an untouched/reset select
+      // control's raw value comes back as `null` rather than `undefined` - normalize both
+      // to `undefined` so callers/tests only ever see one "unset" representation.
+      accountId: accountId ?? undefined,
     });
   }
 }

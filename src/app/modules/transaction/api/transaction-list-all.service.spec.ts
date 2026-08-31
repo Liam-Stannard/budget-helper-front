@@ -361,6 +361,34 @@ describe('TransactionListAllService', () => {
     );
   });
 
+  it('should send category/accountId filters on every follow-up page as page 0', () => {
+    service
+      .getAllTransactions({ category: 'FOOD', accountId: 7 })
+      .subscribe();
+
+    const firstReq = httpTestingController.expectOne(
+      (r) => r.url === '/api/v1/transaction' && r.params.get('page') === '0'
+    );
+    expect(firstReq.request.params.get('category')).toBe('FOOD');
+    expect(firstReq.request.params.get('account_id')).toBe('7');
+    firstReq.flush(pageResponse([1], 3, 3));
+
+    const secondReq = httpTestingController.expectOne(
+      (r) => r.url === '/api/v1/transaction' && r.params.get('page') === '1'
+    );
+    const thirdReq = httpTestingController.expectOne(
+      (r) => r.url === '/api/v1/transaction' && r.params.get('page') === '2'
+    );
+
+    for (const req of [secondReq, thirdReq]) {
+      expect(req.request.params.get('category')).toBe('FOOD');
+      expect(req.request.params.get('account_id')).toBe('7');
+    }
+
+    secondReq.flush(pageResponse([2], 3, 3));
+    thirdReq.flush(pageResponse([3], 3, 3));
+  });
+
   it('should work when called with no params at all (unbounded fetch of everything)', () => {
     let result: IGetTransactionListResponse | undefined;
     service.getAllTransactions().subscribe((res) => {

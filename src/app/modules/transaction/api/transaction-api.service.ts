@@ -38,6 +38,12 @@ export class TransactionApiService {
     if (params.sort) {
       httpParams = httpParams.set('sort', params.sort);
     }
+    if (params.category !== undefined) {
+      httpParams = httpParams.set('category', params.category);
+    }
+    if (params.accountId !== undefined) {
+      httpParams = httpParams.set('account_id', params.accountId);
+    }
 
     return this.httpClient.get<IGetTransactionListResponse>(
       `${URL_TRANSACTION_BASE}`,
