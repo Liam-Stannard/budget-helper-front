@@ -1,0 +1,22 @@
+<svg
+  class="sparkline"
+  [attr.viewBox]="'0 0 ' + viewWidth + ' ' + viewHeight"
+  preserveAspectRatio="none"
+  role="img"
+  [attr.aria-label]="
+    'Spend trend over the last two months, split into ' +
+    buckets.length +
+    ' buckets'
+  "
+>
+  @for (bucket of buckets; track $index) {
+  <rect
+    class="bar"
+    [class.current]="bucket.isCurrentMonth"
+    [attr.x]="barX($index)"
+    [attr.y]="barY(bucket.amount)"
+    [attr.width]="barWidth"
+    [attr.height]="barHeight(bucket.amount)"
+  />
+  }
+</svg>

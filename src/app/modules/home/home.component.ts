@@ -7,12 +7,14 @@ import { ITransaction } from '../transaction/shared/transaction.interface';
 import { CATEGORY_OPTIONS } from '../transaction/shared/transcations.constants';
 import { StatTileComponent } from './components/stat-tile/stat-tile.component';
 import { CategoryBreakdownChartComponent } from './components/category-breakdown-chart/category-breakdown-chart.component';
+import { SparklineComponent } from './components/sparkline/sparkline.component';
 import {
   currentAndPreviousMonthRange,
   filterCurrentMonth,
   filterExpenses,
   filterPreviousMonth,
   getMonthOverMonthDelta,
+  getSparklineBuckets,
   getTopCategory,
   getTotalAmount,
   sumByCategory,
@@ -26,6 +28,7 @@ import {
     MatProgressBarModule,
     StatTileComponent,
     CategoryBreakdownChartComponent,
+    SparklineComponent,
   ],
   providers: [CurrencyPipe],
   templateUrl: './home.component.html',
@@ -55,6 +58,10 @@ export class HomeComponent
 
   protected totalLastMonth = computed(() =>
     getTotalAmount(filterExpenses(this.previousMonthTransactions()))
+  );
+
+  protected sparklineBuckets = computed(() =>
+    getSparklineBuckets(filterExpenses(this.transactions()))
   );
 
   protected monthDelta = computed(() =>
