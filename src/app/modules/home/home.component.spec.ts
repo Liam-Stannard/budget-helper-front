@@ -157,6 +157,132 @@ describe('HomeComponent', () => {
     });
   });
 
+  describe('daily cumulative spend', () => {
+    it('should build the current-month series through today only, excluding income', () => {
+      component['transactions'].set([
+        makeTransaction({ date: dayjs().startOf('month').format('YYYY-MM-DD'), amount: '10.00' }),
+        makeTransaction({ date: dayjs().format('YYYY-MM-DD'), amount: '5.00' }),
+        makeTransaction({
+          date: dayjs().format('YYYY-MM-DD'),
+          category: 'INCOME',
+          amount: '500.00',
+        }),
+      ]);
+      fixture.detectChanges();
+
+      const series = component['currentMonthCumulativeSpend']();
+
+      expect(series).toHaveLength(dayjs().date());
+      expect(series[series.length - 1].cumulativeAmount).toBe(15);
+    });
+
+    it('should build the previous-month series for the full month, excluding income', () => {
+      const previousMonthStart = dayjs().subtract(1, 'month').startOf('month');
+
+      component['transactions'].set([
+        makeTransaction({
+          date: previousMonthStart.format('YYYY-MM-DD'),
+          amount: '20.00',
+        }),
+        makeTransaction({
+          date: previousMonthStart.format('YYYY-MM-DD'),
+          category: 'INCOME',
+          amount: '500.00',
+        }),
+      ]);
+      fixture.detectChanges();
+
+      const series = component['previousMonthCumulativeSpend']();
+
+      expect(series).toHaveLength(previousMonthStart.daysInMonth());
+      expect(series[series.length - 1].cumulativeAmount).toBe(20);
+    });
+
+    it('should be an all-zero flat series for both months when every transaction is INCOME', () => {
+      component['transactions'].set([
+        makeTransaction({
+          date: dayjs().format('YYYY-MM-DD'),
+          category: 'INCOME',
+          amount: '500.00',
+        }),
+        makeTransaction({
+          date: dayjs().subtract(1, 'month').startOf('month').format('YYYY-MM-DD'),
+          category: 'INCOME',
+          amount: '750.00',
+        }),
+      ]);
+      fixture.detectChanges();
+
+      const currentSeries = component['currentMonthCumulativeSpend']();
+      const previousSeries = component['previousMonthCumulativeSpend']();
+
+      // Not empty (a day-by-day series still exists), just flat at 0 -- and no leakage of the
+      // INCOME amount into the running total.
+      expect(currentSeries.length).toBeGreaterThan(0);
+      expect(previousSeries.length).toBeGreaterThan(0);
+      expect(currentSeries.every((point) => point.cumulativeAmount === 0)).toBe(
+        true
+      );
+      expect(
+        previousSeries.every((point) => point.cumulativeAmount === 0)
+      ).toBe(true);
+    });
+
+    describe('when today is the 1st of the month', () => {
+      beforeEach(() => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2024-06-01T12:00:00'));
+
+        component['transactions'].set([
+          makeTransaction({ date: '2024-06-01', amount: '12.00' }),
+        ]);
+        fixture.detectChanges();
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('should produce a current-month series with exactly one point', () => {
+        const series = component['currentMonthCumulativeSpend']();
+
+        expect(series).toEqual([
+          { day: 1, date: '2024-06-01', cumulativeAmount: 12 },
+        ]);
+      });
+    });
+
+    describe('when today is the last day of the month', () => {
+      beforeEach(() => {
+        // August and July 2024 both have 31 days -- a deliberate choice so that a
+        // current/previous off-by-one bug (e.g. one series short/long by a day) would show up
+        // as a length mismatch rather than being masked by the months naturally differing in
+        // length.
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2024-08-31T12:00:00'));
+
+        component['transactions'].set([
+          makeTransaction({ date: '2024-08-15', amount: '10.00' }),
+          makeTransaction({ date: '2024-07-15', amount: '10.00' }),
+        ]);
+        fixture.detectChanges();
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('should give the current and previous month series equal length, both covering a full month', () => {
+        const currentSeries = component['currentMonthCumulativeSpend']();
+        const previousSeries = component['previousMonthCumulativeSpend']();
+
+        expect(currentSeries).toHaveLength(31);
+        expect(previousSeries).toHaveLength(31);
+        expect(currentSeries.length).toBe(previousSeries.length);
+      });
+    });
+  });
+
   describe('month-over-month delta', () => {
     it('should show a "bad" delta when spend increased vs last month', () => {
       component['transactions'].set([
