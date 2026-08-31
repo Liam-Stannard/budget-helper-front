@@ -4,4 +4,5 @@
   @if (delta) {
   <span class="delta" [class.good]="deltaIsGood" [class.bad]="deltaIsGood === false">{{ delta }}</span>
   }
+  <ng-content></ng-content>
 </mat-card>

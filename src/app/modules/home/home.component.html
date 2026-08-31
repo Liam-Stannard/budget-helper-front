@@ -11,7 +11,9 @@
     [value]="(totalThisMonth() | currency)!"
     [delta]="deltaText()"
     [deltaIsGood]="deltaIsGood()"
-  />
+  >
+    <app-sparkline [buckets]="sparklineBuckets()" />
+  </app-stat-tile>
   <app-stat-tile
     label="Transactions this month"
     [value]="countThisMonth().toString()"

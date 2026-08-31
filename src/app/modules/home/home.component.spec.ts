@@ -157,6 +157,91 @@ describe('HomeComponent', () => {
     });
   });
 
+  describe('sparklineBuckets', () => {
+    it('should return 12 buckets summing to the total expense spend across both months', () => {
+      component['transactions'].set([
+        makeTransaction({ category: 'FOOD', amount: '10.00' }),
+        makeTransaction({ category: 'INCOME', amount: '500.00' }),
+        makeTransaction({
+          category: 'FOOD',
+          amount: '5.00',
+          date: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
+        }),
+      ]);
+      fixture.detectChanges();
+
+      const buckets = component['sparklineBuckets']();
+      const total = buckets.reduce((sum, bucket) => sum + bucket.amount, 0);
+
+      expect(buckets).toHaveLength(12);
+      expect(total).toBe(15);
+    });
+
+    it('should render 12 buckets when there are no transactions', () => {
+      component['transactions'].set([]);
+      fixture.detectChanges();
+
+      expect(component['sparklineBuckets']()).toHaveLength(12);
+    });
+
+    it('should never let an INCOME transaction contribute to the bucket it would otherwise land in', () => {
+      // an INCOME transaction dated "today" would land in the final bucket (index 11) if it
+      // weren't filtered out before reaching getSparklineBuckets -- assert that specific bucket
+      // stays clean, not just that the grand total nets out correctly.
+      component['transactions'].set([
+        makeTransaction({ category: 'INCOME', amount: '5000.00' }),
+      ]);
+      fixture.detectChanges();
+
+      const buckets = component['sparklineBuckets']();
+
+      expect(buckets[11].amount).toBe(0);
+      expect(buckets.every((bucket) => bucket.amount === 0)).toBe(true);
+    });
+
+    it('should render only finite, non-negative-NaN bar heights for a brand-new user with no transactions', () => {
+      component['transactions'].set([]);
+      fixture.detectChanges();
+
+      const bars = (fixture.nativeElement as HTMLElement).querySelectorAll(
+        'app-sparkline .bar'
+      );
+
+      expect(bars).toHaveLength(12);
+      bars.forEach((bar) => {
+        const height = Number(bar.getAttribute('height'));
+
+        expect(Number.isFinite(height)).toBe(true);
+        expect(height).toBeGreaterThan(0);
+      });
+    });
+  });
+
+  describe('stat tiles without projected content', () => {
+    it('should still render the transaction-count and top-category tiles correctly after the sparkline was added to the total tile', () => {
+      component['transactions'].set([makeTransaction({ category: 'FOOD' })]);
+      fixture.detectChanges();
+
+      const tiles = (fixture.nativeElement as HTMLElement).querySelectorAll(
+        'app-stat-tile'
+      );
+
+      expect(tiles).toHaveLength(3);
+
+      const countTileText = tiles[1].textContent ?? '';
+      const topCategoryTileText = tiles[2].textContent ?? '';
+
+      expect(countTileText).toContain('Transactions this month');
+      expect(countTileText).toContain('1');
+      expect(topCategoryTileText).toContain('Top category');
+      expect(topCategoryTileText).toContain('Food');
+
+      // neither of these tiles projects any content (no <app-sparkline> inside them)
+      expect(tiles[1].querySelector('app-sparkline')).toBeNull();
+      expect(tiles[2].querySelector('app-sparkline')).toBeNull();
+    });
+  });
+
   describe('month-over-month delta', () => {
     it('should show a "bad" delta when spend increased vs last month', () => {
       component['transactions'].set([

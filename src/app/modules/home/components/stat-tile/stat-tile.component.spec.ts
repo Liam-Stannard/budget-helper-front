@@ -1,4 +1,6 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { StatTileComponent } from './stat-tile.component';
 
 describe('StatTileComponent', () => {
@@ -62,6 +64,33 @@ describe('StatTileComponent', () => {
 
       expect(deltaEl.classList).toContain('bad');
       expect(deltaEl.classList).not.toContain('good');
+    });
+  });
+
+  describe('projected content', () => {
+    @Component({
+      standalone: true,
+      imports: [StatTileComponent],
+      template: `<app-stat-tile label="Total this month" value="£100.00">
+        <span class="projected-child">sparkline</span>
+      </app-stat-tile>`,
+    })
+    class HostComponent {}
+
+    it('should render content projected into the tile', async () => {
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [HostComponent],
+      }).compileComponents();
+
+      const hostFixture = TestBed.createComponent(HostComponent);
+      hostFixture.detectChanges();
+
+      const projected = hostFixture.debugElement.query(
+        By.css('.projected-child')
+      );
+
+      expect(projected).not.toBeNull();
     });
   });
 });

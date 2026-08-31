@@ -85,3 +85,57 @@ export function getMonthOverMonthDelta(
         : ((currentTotal - previousTotal) / previousTotal) * 100,
   };
 }
+
+export interface ISparklineBucket {
+  amount: number;
+  /** Whether this bucket counts as "current month" for coloring purposes. A bucket's ~2-5 day
+   * span is always far shorter than a calendar month, so a bucket can only ever straddle the
+   * previous/current month boundary once — checking whether the bucket's END falls on or after
+   * the start of the current calendar month identifies exactly that straddling bucket (and every
+   * later bucket, though there are none) as current-month, without needing to split a single
+   * bucket's amount across two colors. This intentionally classifies the whole straddling bucket
+   * as current-month rather than previous-month: it's the bucket "today" lives in, and any part
+   * of it representing today's spend should read as current. */
+  isCurrentMonth: boolean;
+}
+
+const SPARKLINE_BUCKET_COUNT = 12;
+
+/** Buckets expense transactions into `bucketCount` equal-length time slices spanning the home
+ * screen's whole fetch window — previous-month-start through today (see
+ * currentAndPreviousMonthRange) — for the "Total this month" stat tile's sparkline. Callers
+ * should pass already-expense-filtered transactions (see filterExpenses); INCOME isn't spend.
+ * Degrades gracefully to a set of empty (0-amount) buckets when there are no transactions. */
+export function getSparklineBuckets(
+  transactions: ITransaction[],
+  bucketCount: number = SPARKLINE_BUCKET_COUNT
+): ISparklineBucket[] {
+  const rangeStart = dayjs().subtract(1, 'month').startOf('month');
+  const rangeEnd = dayjs().endOf('day');
+  const rangeMs = Math.max(rangeEnd.diff(rangeStart), 1);
+  const bucketMs = rangeMs / bucketCount;
+  const currentMonthStart = dayjs().startOf('month');
+
+  const buckets: ISparklineBucket[] = Array.from(
+    { length: bucketCount },
+    (_, index) => ({
+      amount: 0,
+      isCurrentMonth: !rangeStart
+        .add(bucketMs * (index + 1), 'millisecond')
+        .isBefore(currentMonthStart),
+    })
+  );
+
+  for (const transaction of transactions) {
+    const offsetMs = dayjs(transaction.date).diff(rangeStart);
+
+    if (offsetMs < 0 || offsetMs > rangeMs) {
+      continue;
+    }
+
+    const index = Math.min(Math.floor(offsetMs / bucketMs), bucketCount - 1);
+    buckets[index].amount += Number(transaction.amount);
+  }
+
+  return buckets;
+}
