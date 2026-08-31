@@ -6,8 +6,9 @@ import { TransactionApiService } from '../transaction/api/transaction-api.servic
 import { ITransaction } from '../transaction/shared/transaction.interface';
 import { CATEGORY_OPTIONS } from '../transaction/shared/transcations.constants';
 import { StatTileComponent } from './components/stat-tile/stat-tile.component';
-import { CategoryBreakdownChartComponent } from './components/category-breakdown-chart/category-breakdown-chart.component';
+import { CategoryComparisonChartComponent } from './components/category-comparison-chart/category-comparison-chart.component';
 import {
+  compareCategoriesByMonth,
   currentAndPreviousMonthRange,
   filterCurrentMonth,
   filterExpenses,
@@ -25,7 +26,7 @@ import {
     CommonModule,
     MatProgressBarModule,
     StatTileComponent,
-    CategoryBreakdownChartComponent,
+    CategoryComparisonChartComponent,
   ],
   providers: [CurrencyPipe],
   templateUrl: './home.component.html',
@@ -79,6 +80,13 @@ export class HomeComponent
 
   protected breakdown = computed(() =>
     sumByCategory(filterExpenses(this.currentMonthTransactions()))
+  );
+
+  protected categoryComparison = computed(() =>
+    compareCategoriesByMonth(
+      filterExpenses(this.currentMonthTransactions()),
+      filterExpenses(this.previousMonthTransactions())
+    )
   );
 
   protected topCategoryLabel = computed(() => {
