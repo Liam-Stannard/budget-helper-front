@@ -13,52 +13,112 @@
   </span>
 </div>
 
-<svg
-  class="chart-svg"
-  [attr.viewBox]="viewBox"
-  preserveAspectRatio="none"
-  role="img"
-  [attr.aria-label]="ariaLabel"
->
-  <line
-    class="baseline"
-    x1="0"
-    [attr.y1]="baselineY"
-    [attr.x2]="viewWidth"
-    [attr.y2]="baselineY"
-  />
 
-  @if (previousPoints.length > 1) {
-  <polyline
-    class="line previous"
-    [attr.points]="toPolylinePoints(previousPoints)"
-  />
-  } @else if (previousPoints.length === 1) {
-  <circle
-    class="dot previous"
-    [attr.cx]="previousPoints[0].x"
-    [attr.cy]="previousPoints[0].y"
-    r="3"
-  >
-    <title>{{ pointLabel(previousPoints[0]) }}</title>
-  </circle>
-  }
+<span class="sr-only" id="cumulative-spend-chart-instructions">
+  Use the left and right arrow keys to move the cursor by day and hear the totals for that day.
+</span>
 
-  @if (currentPoints.length > 1) {
-  <polyline
-    class="line current"
-    [attr.points]="toPolylinePoints(currentPoints)"
-  />
-  } @else if (currentPoints.length === 1) {
-  <circle
-    class="dot current"
-    [attr.cx]="currentPoints[0].x"
-    [attr.cy]="currentPoints[0].y"
-    r="3"
+<div class="chart-wrapper">
+  <svg
+    class="chart-svg"
+    [attr.viewBox]="viewBox"
+    preserveAspectRatio="none"
+    role="application"
+    tabindex="0"
+    [attr.aria-label]="ariaLabel"
+    aria-describedby="cumulative-spend-chart-instructions"
+    (mousemove)="onChartMouseMove($event)"
+    (mouseleave)="onChartMouseLeave()"
+    (focus)="onChartFocus()"
+    (blur)="onChartBlur()"
+    (keydown)="onChartKeydown($event)"
   >
-    <title>{{ pointLabel(currentPoints[0]) }}</title>
-  </circle>
+    <line
+      class="baseline"
+      x1="0"
+      [attr.y1]="baselineY"
+      [attr.x2]="viewWidth"
+      [attr.y2]="baselineY"
+    />
+
+    @if (previousPoints.length > 1) {
+    <polyline
+      class="line previous"
+      [attr.points]="toPolylinePoints(previousPoints)"
+    />
+    } @else if (previousPoints.length === 1) {
+    <circle
+      class="dot previous"
+      [attr.cx]="previousPoints[0].x"
+      [attr.cy]="previousPoints[0].y"
+      r="3"
+    >
+      <title>{{ pointLabel(previousPoints[0]) }}</title>
+    </circle>
+    }
+
+    @if (currentPoints.length > 1) {
+    <polyline
+      class="line current"
+      [attr.points]="toPolylinePoints(currentPoints)"
+    />
+    } @else if (currentPoints.length === 1) {
+    <circle
+      class="dot current"
+      [attr.cx]="currentPoints[0].x"
+      [attr.cy]="currentPoints[0].y"
+      r="3"
+    >
+      <title>{{ pointLabel(currentPoints[0]) }}</title>
+    </circle>
+    }
+
+    @if (selectedDay !== null) {
+    <line
+      class="crosshair"
+      [attr.x1]="crosshairX"
+      y1="0"
+      [attr.x2]="crosshairX"
+      [attr.y2]="baselineY"
+    />
+    @if (selectedPreviousPoint) {
+    <circle
+      class="crosshair-dot previous"
+      [attr.cx]="selectedPreviousPoint.x"
+      [attr.cy]="selectedPreviousPoint.y"
+      r="4"
+    />
+    } @if (selectedCurrentPoint) {
+    <circle
+      class="crosshair-dot current"
+      [attr.cx]="selectedCurrentPoint.x"
+      [attr.cy]="selectedCurrentPoint.y"
+      r="4"
+    />
+    } }
+  </svg>
+
+  @if (selectedDay !== null) {
+  <div class="tooltip" aria-hidden="true" [style.left]="tooltipLeft">
+    <div class="tooltip-day">Day {{ selectedDay }}</div>
+    <div class="tooltip-row current">
+      This month{{
+        formattedDate(selectedCurrentPoint)
+          ? ' (' + formattedDate(selectedCurrentPoint) + ')'
+          : ''
+      }}: {{ amountLabel(selectedCurrentPoint) }}
+    </div>
+    <div class="tooltip-row previous">
+      Last month{{
+        formattedDate(selectedPreviousPoint)
+          ? ' (' + formattedDate(selectedPreviousPoint) + ')'
+          : ''
+      }}: {{ amountLabel(selectedPreviousPoint) }}
+    </div>
+  </div>
   }
-</svg>
+</div>
+
+<div class="sr-only" aria-live="polite">{{ selectionAnnouncement }}</div>
 }
 </mat-card>

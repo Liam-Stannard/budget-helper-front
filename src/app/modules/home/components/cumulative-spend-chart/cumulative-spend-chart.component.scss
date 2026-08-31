@@ -5,6 +5,7 @@
   --line-current: #7a5cf0;
   --line-previous: rgba(26, 26, 25, 0.35);
   --chart-baseline: rgba(0, 0, 0, 0.1);
+  --chart-crosshair: rgba(0, 0, 0, 0.3);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -12,6 +13,7 @@
     --line-current: #8a6ff5;
     --line-previous: rgba(242, 242, 240, 0.35);
     --chart-baseline: rgba(255, 255, 255, 0.12);
+    --chart-crosshair: rgba(255, 255, 255, 0.3);
   }
 }
 
@@ -47,10 +49,19 @@
   background: var(--line-previous);
 }
 
+.chart-wrapper {
+  position: relative;
+}
+
 .chart-svg {
   display: block;
   width: 100%;
   height: 160px;
+
+  &:focus-visible {
+    outline: 2px solid var(--line-current);
+    outline-offset: 2px;
+  }
 }
 
 .baseline {
@@ -81,8 +92,61 @@
   fill: var(--line-previous);
 }
 
+.crosshair-dot.current {
+  fill: var(--line-current);
+}
+.crosshair-dot.previous {
+  fill: var(--line-previous);
+}
+
 .empty-state {
   padding: 2rem;
   text-align: center;
   opacity: 0.6;
+}
+
+.crosshair {
+  stroke: var(--chart-crosshair);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.crosshair-dot {
+  pointer-events: none;
+  stroke: white;
+  stroke-width: 1.5;
+}
+
+.tooltip {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  min-width: 9rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 6px;
+  background: var(--chart-tooltip-bg, rgba(26, 26, 25, 0.9));
+  color: #fff;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.tooltip-day {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.tooltip-row.current {
+  color: var(--line-current);
+}
+
+// Visually hidden but screen-reader-readable; mirrors the visual tooltip's content.
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
 }
