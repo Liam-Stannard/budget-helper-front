@@ -1,12 +1,16 @@
 import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { forkJoin } from 'rxjs';
 import { AbstractComponent } from '../../core/component/abstract/abstract.component';
 import { TransactionApiService } from '../transaction/api/transaction-api.service';
 import { ITransaction } from '../transaction/shared/transaction.interface';
 import { CATEGORY_OPTIONS } from '../transaction/shared/transcations.constants';
+import { AccountApiService } from '../account/api/account-api.service';
+import { IAccount } from '../account/shared/account.interface';
 import { StatTileComponent } from './components/stat-tile/stat-tile.component';
 import { CategoryBreakdownChartComponent } from './components/category-breakdown-chart/category-breakdown-chart.component';
+import { SpendingByAccountChartComponent } from './components/spending-by-account-chart/spending-by-account-chart.component';
 import {
   currentAndPreviousMonthRange,
   filterCurrentMonth,
@@ -15,6 +19,7 @@ import {
   getMonthOverMonthDelta,
   getTopCategory,
   getTotalAmount,
+  sumByAccount,
   sumByCategory,
 } from './home.utils';
 
@@ -26,6 +31,7 @@ import {
     MatProgressBarModule,
     StatTileComponent,
     CategoryBreakdownChartComponent,
+    SpendingByAccountChartComponent,
   ],
   providers: [CurrencyPipe],
   templateUrl: './home.component.html',
@@ -36,6 +42,8 @@ export class HomeComponent
   implements OnInit, OnDestroy
 {
   protected transactions = signal<ITransaction[]>([]);
+
+  protected accounts = signal<IAccount[]>([]);
 
   protected currentMonthTransactions = computed(() =>
     filterCurrentMonth(this.transactions())
@@ -81,6 +89,13 @@ export class HomeComponent
     sumByCategory(filterExpenses(this.currentMonthTransactions()))
   );
 
+  protected accountBreakdown = computed(() =>
+    sumByAccount(
+      filterExpenses(this.currentMonthTransactions()),
+      this.accounts()
+    )
+  );
+
   protected topCategoryLabel = computed(() => {
     const top = getTopCategory(this.breakdown());
 
@@ -96,6 +111,7 @@ export class HomeComponent
 
   constructor(
     private transactionApiService: TransactionApiService,
+    private accountApiService: AccountApiService,
     private currencyPipe: CurrencyPipe
   ) {
     super();
@@ -113,16 +129,22 @@ export class HomeComponent
   protected getData(): void {
     const { from, to } = currentAndPreviousMonthRange();
 
-    this.transactionApiService
-      .getTransactionList({ from, to, size: 200 })
-      .subscribe({
-        next: (res) => {
-          this.transactions.set(res.transactionList);
-          this.loading.set(false);
-        },
-        error: (err) => {
-          this.handleError('Failed to load transactions', err);
-        },
-      });
+    forkJoin({
+      transactions: this.transactionApiService.getTransactionList({
+        from,
+        to,
+        size: 200,
+      }),
+      accounts: this.accountApiService.getAccountList(),
+    }).subscribe({
+      next: ({ transactions, accounts }) => {
+        this.transactions.set(transactions.transactionList);
+        this.accounts.set(accounts.accountList);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.handleError('Failed to load transactions', err);
+      },
+    });
   }
 }

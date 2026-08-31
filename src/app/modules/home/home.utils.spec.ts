@@ -7,6 +7,7 @@ import {
   getMonthOverMonthDelta,
   getTopCategory,
   getTotalAmount,
+  sumByAccount,
   sumByCategory,
 } from './home.utils';
 
@@ -142,6 +143,117 @@ describe('home.utils', () => {
         'FOOD',
         'CLOTHING',
       ]);
+    });
+  });
+
+  describe('sumByAccount', () => {
+    it('should return an empty array when there are no accounts', () => {
+      expect(sumByAccount([], [])).toEqual([]);
+    });
+
+    it('should return an empty array when there are no accounts, even with unmatched transactions', () => {
+      const transactions = [makeTransaction({ amount: '10.00' })];
+
+      expect(sumByAccount(transactions, [])).toEqual([]);
+    });
+
+    it('should include an account with zero matching transactions this month, at 0 rather than being omitted', () => {
+      const spendingAccount = { id: 1, name: 'Main' };
+      const zeroSpendAccount = { id: 2, name: 'Savings' };
+      const transactions = [
+        makeTransaction({ account: spendingAccount, amount: '10.00' }),
+      ];
+
+      expect(
+        sumByAccount(transactions, [spendingAccount, zeroSpendAccount])
+      ).toEqual([
+        { accountId: 1, accountName: 'Main', amount: 10 },
+        { accountId: 2, accountName: 'Savings', amount: 0 },
+      ]);
+    });
+
+    it('should list every account at 0 when there are no transactions at all, preserving the given account order (stable sort on tied amounts)', () => {
+      const accounts = [
+        { id: 1, name: 'Main' },
+        { id: 2, name: 'Savings' },
+        { id: 3, name: 'Joint' },
+      ];
+
+      expect(sumByAccount([], accounts)).toEqual([
+        { accountId: 1, accountName: 'Main', amount: 0 },
+        { accountId: 2, accountName: 'Savings', amount: 0 },
+        { accountId: 3, accountName: 'Joint', amount: 0 },
+      ]);
+    });
+
+    it('should not drop or reorder unexpectedly when multiple accounts have identical non-zero spend', () => {
+      const accounts = [
+        { id: 1, name: 'Main' },
+        { id: 2, name: 'Savings' },
+        { id: 3, name: 'Joint' },
+      ];
+      const transactions = [
+        makeTransaction({ account: accounts[0], amount: '20.00' }),
+        makeTransaction({ account: accounts[1], amount: '20.00' }),
+        makeTransaction({ account: accounts[2], amount: '20.00' }),
+      ];
+
+      const result = sumByAccount(transactions, accounts);
+
+      // all three accounts must still be present
+      expect(result).toHaveLength(3);
+      expect(result.every((item) => item.amount === 20)).toBe(true);
+      // tied amounts keep the original account-list order (stable sort)
+      expect(result.map((item) => item.accountId)).toEqual([1, 2, 3]);
+    });
+
+    it('should keep both entries separately when two accounts share the same display name but have different ids', () => {
+      const accountA = { id: 1, name: 'Joint' };
+      const accountB = { id: 2, name: 'Joint' };
+      const transactions = [
+        makeTransaction({ account: accountA, amount: '50.00' }),
+        makeTransaction({ account: accountB, amount: '30.00' }),
+      ];
+
+      expect(sumByAccount(transactions, [accountA, accountB])).toEqual([
+        { accountId: 1, accountName: 'Joint', amount: 50 },
+        { accountId: 2, accountName: 'Joint', amount: 30 },
+      ]);
+    });
+
+    it('should never fold INCOME transactions into an account total, even when mixed with expenses on the same account', () => {
+      const spendingAccount = { id: 1, name: 'Main' };
+      const transactions = [
+        makeTransaction({
+          account: spendingAccount,
+          category: 'INCOME',
+          amount: '500.00',
+        }),
+        makeTransaction({
+          account: spendingAccount,
+          category: 'FOOD',
+          amount: '10.00',
+        }),
+      ];
+
+      expect(
+        sumByAccount(filterExpenses(transactions), [spendingAccount])
+      ).toEqual([{ accountId: 1, accountName: 'Main', amount: 10 }]);
+    });
+
+    it('drops the spend entirely (does not attribute it to any row) when a transaction references an account that is absent from the given account list', () => {
+      // e.g. a deleted account, or an account-list fetch that didn't include it.
+      const knownAccount = { id: 1, name: 'Main' };
+      const missingAccount = { id: 99, name: 'Deleted' };
+      const transactions = [
+        makeTransaction({ account: missingAccount, amount: '999.00' }),
+      ];
+
+      const result = sumByAccount(transactions, [knownAccount]);
+
+      expect(result).toEqual([{ accountId: 1, accountName: 'Main', amount: 0 }]);
+      // the $999 spend against the untracked account isn't represented anywhere in the output
+      expect(result.reduce((sum, item) => sum + item.amount, 0)).toBe(0);
     });
   });
 
