@@ -1,9 +1,16 @@
 import dayjs from 'dayjs';
 import { ITransaction } from '../transaction/shared/transaction.interface';
 import { Category } from '../transaction/shared/transaction.types';
+import { IAccount } from '../account/shared/account.interface';
 
 export interface ICategoryAmount {
   category: Category;
+  amount: number;
+}
+
+export interface IAccountAmount {
+  accountId?: number;
+  accountName: string;
   amount: number;
 }
 
@@ -58,6 +65,34 @@ export function sumByCategory(transactions: ITransaction[]): ICategoryAmount[] {
 
   return Array.from(amountByCategory.entries())
     .map(([category, amount]) => ({ category, amount }))
+    .sort((a, b) => b.amount - a.amount);
+}
+
+/** Sums the given (already current-month, already expense-filtered) transactions per account,
+ * joined against the full account list so accounts with zero spend this month still appear
+ * (with a 0 amount) rather than being dropped. Sorted descending by amount, so zero-spend
+ * accounts naturally sink to the bottom. */
+export function sumByAccount(
+  transactions: ITransaction[],
+  accounts: IAccount[]
+): IAccountAmount[] {
+  const amountByAccountId = new Map<number | undefined, number>();
+
+  for (const transaction of transactions) {
+    const amount = Number(transaction.amount);
+    const accountId = transaction.account.id;
+    amountByAccountId.set(
+      accountId,
+      (amountByAccountId.get(accountId) ?? 0) + amount
+    );
+  }
+
+  return accounts
+    .map((account) => ({
+      accountId: account.id,
+      accountName: account.name,
+      amount: amountByAccountId.get(account.id) ?? 0,
+    }))
     .sort((a, b) => b.amount - a.amount);
 }
 

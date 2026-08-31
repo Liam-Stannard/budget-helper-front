@@ -1,0 +1,36 @@
+<mat-card class="chart-card">
+@if (data.length > 0) {
+<div class="chart">
+  @for (item of data; track item.accountId) {
+  <div class="row">
+    <span class="row-label">{{ item.accountName }}</span>
+    <div class="bar-track">
+      <div
+        class="bar"
+        tabindex="0"
+        role="img"
+        [attr.aria-label]="ariaLabel(item)"
+        [style.width.%]="widthPercent(item.amount)"
+      >
+        <span class="tooltip" aria-hidden="true">
+          <strong>{{ item.amount | currency }}</strong>
+          <span class="tooltip-meta"
+            >{{ item.accountName }} ·
+            {{ percentOfTotal(item.amount) | number: '1.0-0' }}%</span
+          >
+        </span>
+      </div>
+    </div>
+    <span class="row-value">
+      {{ item.amount | currency }}
+      <span class="row-percent"
+        >{{ percentOfTotal(item.amount) | number: '1.0-0' }}%</span
+      >
+    </span>
+  </div>
+  }
+</div>
+} @else {
+<p class="empty-state">No accounts yet.</p>
+}
+</mat-card>

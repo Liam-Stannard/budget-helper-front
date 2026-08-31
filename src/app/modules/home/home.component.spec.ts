@@ -8,12 +8,18 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { throwError } from 'rxjs';
 import dayjs from 'dayjs';
 import { HomeComponent } from './home.component';
-import { MockApiService, MockAuthService } from '../../../test/mockService';
+import {
+  MockAccountApiService,
+  MockApiService,
+  MockAuthService,
+} from '../../../test/mockService';
 import { AuthService } from '../../core/auth/auth.service';
 import { TransactionApiService } from '../transaction/api/transaction-api.service';
+import { AccountApiService } from '../account/api/account-api.service';
 import { ITransaction } from '../transaction/shared/transaction.interface';
 
 const account = { id: 1, name: 'Main' };
+const account2 = { id: 2, name: 'Savings' };
 
 function makeTransaction(overrides: Partial<ITransaction>): ITransaction {
   return {
@@ -52,6 +58,10 @@ describe('HomeComponent', () => {
           provide: TransactionApiService,
           useClass: MockApiService,
         },
+        {
+          provide: AccountApiService,
+          useClass: MockAccountApiService,
+        },
       ],
     }).compileComponents();
 
@@ -87,6 +97,32 @@ describe('HomeComponent', () => {
         'Dismiss',
         expect.any(Object)
       );
+    });
+  });
+
+  describe('when the account list fails to load but the transaction list succeeds', () => {
+    it('should still stop the spinner and notify the user (forkJoin surfaces either failure)', () => {
+      const accountApiService = TestBed.inject(
+        AccountApiService
+      ) as unknown as MockAccountApiService;
+      const snackBar = TestBed.inject(MatSnackBar);
+      const snackBarSpy = jest.spyOn(snackBar, 'open').mockImplementation();
+      accountApiService.getAccountList.mockReturnValueOnce(
+        throwError(() => new Error('accounts down'))
+      );
+
+      component['getData']();
+
+      expect(component['loading']()).toBe(false);
+      expect(snackBarSpy).toHaveBeenCalledWith(
+        'Failed to load transactions',
+        'Dismiss',
+        expect.any(Object)
+      );
+      // forkJoin never emits `next` when one source errors, so the signals simply retain
+      // whatever they held before this call (the successful initial load from `beforeEach`)
+      // rather than being partially updated from the transaction call that did succeed.
+      expect(component['accounts']()).toEqual([{ id: 1, name: 'Main' }]);
     });
   });
 
@@ -154,6 +190,77 @@ describe('HomeComponent', () => {
 
     it('should not show a delta when there is no previous month to compare against', () => {
       expect(component['deltaText']()).toBeUndefined();
+    });
+  });
+
+  describe('accountBreakdown', () => {
+    it('should sum current-month expenses per account', () => {
+      component['accounts'].set([account, account2]);
+      component['transactions'].set([
+        makeTransaction({ category: 'FOOD', amount: '10.00', account }),
+        makeTransaction({ category: 'BILL', amount: '15.00', account }),
+      ]);
+      fixture.detectChanges();
+
+      expect(component['accountBreakdown']()).toEqual([
+        { accountId: 1, accountName: 'Main', amount: 25 },
+        { accountId: 2, accountName: 'Savings', amount: 0 },
+      ]);
+    });
+
+    it('should exclude income transactions', () => {
+      component['accounts'].set([account]);
+      component['transactions'].set([
+        makeTransaction({ category: 'INCOME', amount: '500.00', account }),
+      ]);
+      fixture.detectChanges();
+
+      expect(component['accountBreakdown']()).toEqual([
+        { accountId: 1, accountName: 'Main', amount: 0 },
+      ]);
+    });
+
+    it('should include accounts with no current-month transactions at all', () => {
+      component['accounts'].set([account, account2]);
+      component['transactions'].set([]);
+      fixture.detectChanges();
+
+      expect(component['accountBreakdown']()).toEqual([
+        { accountId: 1, accountName: 'Main', amount: 0 },
+        { accountId: 2, accountName: 'Savings', amount: 0 },
+      ]);
+    });
+
+    it('should not drop any account when several have identical spend this month', () => {
+      const account3 = { id: 3, name: 'Joint' };
+      component['accounts'].set([account, account2, account3]);
+      component['transactions'].set([
+        makeTransaction({ account, amount: '20.00' }),
+        makeTransaction({ account: account2, amount: '20.00' }),
+        makeTransaction({ account: account3, amount: '20.00' }),
+      ]);
+      fixture.detectChanges();
+
+      expect(component['accountBreakdown']()).toHaveLength(3);
+      expect(
+        component['accountBreakdown']().every((item) => item.amount === 20)
+      ).toBe(true);
+    });
+
+    it('should keep both accounts when two accounts share the same display name but different ids', () => {
+      const accountA = { id: 10, name: 'Joint' };
+      const accountB = { id: 11, name: 'Joint' };
+      component['accounts'].set([accountA, accountB]);
+      component['transactions'].set([
+        makeTransaction({ account: accountA, amount: '40.00' }),
+        makeTransaction({ account: accountB, amount: '15.00' }),
+      ]);
+      fixture.detectChanges();
+
+      expect(component['accountBreakdown']()).toEqual([
+        { accountId: 10, accountName: 'Joint', amount: 40 },
+        { accountId: 11, accountName: 'Joint', amount: 15 },
+      ]);
     });
   });
 
