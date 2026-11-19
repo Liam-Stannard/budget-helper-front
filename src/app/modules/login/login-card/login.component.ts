@@ -13,7 +13,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
+import { CardComponent } from '../../../shared/components/card/card.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -30,7 +30,7 @@ import { ErrorNotificationService } from '../../../core/services/error-notificat
     CommonModule,
     ReactiveFormsModule,
     RouterModule,
-    MatCardModule,
+    CardComponent,
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,

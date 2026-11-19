@@ -1,0 +1,55 @@
+<app-card title="Budgets this month" icon="savings" subtitle="Marker shows how far through the month we are">
+  @if (rows.length > 0) {
+  <mat-list>
+    @for (row of rows; track row.category) {
+    <mat-list-item class="budget-row">
+      <span matListItemTitle class="row-top">
+        <span class="row-label">
+          <span class="swatch" [style.background-color]="color(row)"></span>
+          {{ label(row.category) }}
+        </span>
+        <span class="amount">
+          {{ row.spent | currency }}
+          @if (row.limit !== undefined) {
+          <span class="text-muted">of {{ row.limit | currency }}</span>
+          }
+        </span>
+      </span>
+
+      <span matListItemLine class="row-detail">
+        @if (row.limit !== undefined) {
+        <span class="bar-wrapper">
+          <mat-progress-bar
+            mode="determinate"
+            [value]="barValue(row)"
+            [style.--mdc-linear-progress-active-indicator-color]="barColor(row)"
+            [attr.aria-label]="label(row.category) + ' budget used'"
+          />
+          <span class="pace-marker" [style.left.%]="monthElapsedPercent"></span>
+        </span>
+        @switch (row.status) {
+        @case ('over') {
+        <span class="text-bad">{{ -row.remaining! | currency }} over budget</span>
+        }
+        @case ('warning') {
+        <span class="text-warning">{{ row.remaining! | currency }} left · {{ row.percentUsed! | number: '1.0-0' }}% used</span>
+        }
+        @default {
+        <span>{{ row.remaining! | currency }} left · {{ row.percentUsed! | number: '1.0-0' }}% used</span>
+        }
+        }
+        } @else {
+        <span>No budget set</span>
+        }
+      </span>
+    </mat-list-item>
+    }
+  </mat-list>
+  } @else {
+  <p class="dashboard-empty">No spending or budgets yet this month.</p>
+  }
+
+  <ng-container card-actions>
+    <a mat-button routerLink="/budgets">Manage budgets</a>
+  </ng-container>
+</app-card>

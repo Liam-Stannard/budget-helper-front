@@ -1,0 +1,14 @@
+.headline {
+  margin: 0 0 1rem;
+  line-height: 1.5;
+
+  > .amount {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+}
+
+.footnote {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+}

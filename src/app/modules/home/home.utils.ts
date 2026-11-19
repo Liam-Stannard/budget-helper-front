@@ -61,12 +61,6 @@ export function sumByCategory(transactions: ITransaction[]): ICategoryAmount[] {
     .sort((a, b) => b.amount - a.amount);
 }
 
-export function getTopCategory(
-  breakdown: ICategoryAmount[]
-): ICategoryAmount | undefined {
-  return breakdown[0];
-}
-
 export interface IMonthDelta {
   changeAmount: number;
   /** undefined when there's no previous-month total to compare against */

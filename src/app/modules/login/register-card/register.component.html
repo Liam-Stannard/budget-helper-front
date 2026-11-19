@@ -1,83 +1,82 @@
-<mat-card class="flex flex-col-center register">
-  <mat-card-header>
-    <mat-card-title class="register-title">Register</mat-card-title>
-  </mat-card-header>
-  <mat-card-content>
-    <form
-      [formGroup]="form"
-      class="flex flex-col-start"
-      (ngSubmit)="register()"
-    >
-      <mat-form-field appearance="outline">
-        <mat-label>Username</mat-label>
-        <input
-          matInput
-          id="username"
-          name="username"
-          [formControl]="form.controls.username"
-        />
-        <mat-error *ngIf="form.controls.username.hasError('required')">
-          Username is required
-        </mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Email</mat-label>
-        <input
-          matInput
-          id="email"
-          name="email"
-          [formControl]="form.controls.email"
-        />
-        <mat-error *ngIf="form.controls.email.hasError('required')">
-          Email is required
-        </mat-error>
-        <mat-error *ngIf="form.controls.email.hasError('email')">
-          Email must be a valid email address
-        </mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Password</mat-label>
-        <input
-          matInput
-          type="password"
-          id="password"
-          name="password"
-          [formControl]="form.controls.password"
-        />
-        <mat-error *ngIf="form.controls.password.hasError('required')">
-          Password is required
-        </mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Confirm Password</mat-label>
-        <input
-          matInput
-          type="password"
-          id="confirmPassword"
-          name="confirmPassword"
-          [formControl]="form.controls.confirmPassword"
-        />
-        <mat-error *ngIf="form.controls.confirmPassword.hasError('required')">
-          Confirm password is required
-        </mat-error>
-        <mat-error
-          *ngIf="form.controls.confirmPassword.hasError('passwordsMismatch')"
-        >
-          Passwords must match
-        </mat-error>
-      </mat-form-field>
+<app-card class="register" title="Register">
+  <form
+    id="register-form"
+    [formGroup]="form"
+    class="flex flex-col-start"
+    (ngSubmit)="register()"
+  >
+    <mat-form-field appearance="outline">
+      <mat-label>Username</mat-label>
+      <input
+        matInput
+        id="username"
+        name="username"
+        [formControl]="form.controls.username"
+      />
+      <mat-error *ngIf="form.controls.username.hasError('required')">
+        Username is required
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <input
+        matInput
+        id="email"
+        name="email"
+        [formControl]="form.controls.email"
+      />
+      <mat-error *ngIf="form.controls.email.hasError('required')">
+        Email is required
+      </mat-error>
+      <mat-error *ngIf="form.controls.email.hasError('email')">
+        Email must be a valid email address
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Password</mat-label>
+      <input
+        matInput
+        type="password"
+        id="password"
+        name="password"
+        [formControl]="form.controls.password"
+      />
+      <mat-error *ngIf="form.controls.password.hasError('required')">
+        Password is required
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Confirm Password</mat-label>
+      <input
+        matInput
+        type="password"
+        id="confirmPassword"
+        name="confirmPassword"
+        [formControl]="form.controls.confirmPassword"
+      />
+      <mat-error *ngIf="form.controls.confirmPassword.hasError('required')">
+        Confirm password is required
+      </mat-error>
+      <mat-error
+        *ngIf="form.controls.confirmPassword.hasError('passwordsMismatch')"
+      >
+        Passwords must match
+      </mat-error>
+    </mat-form-field>
+  </form>
 
-      <mat-card-actions>
-        <button
-          mat-raised-button
-          color="primary"
-          type="submit"
-          [disabled]="form.invalid"
-        >
-          Submit
-        </button>
-      </mat-card-actions>
-    </form>
-    <a routerLink="/login">Already have an account? Log in</a>
-  </mat-card-content>
-</mat-card>
+  <ng-container card-actions>
+    <div class="actions">
+      <button
+        mat-raised-button
+        color="primary"
+        type="submit"
+        form="register-form"
+        [disabled]="form.invalid"
+      >
+        Submit
+      </button>
+      <a routerLink="/login">Already have an account? Log in</a>
+    </div>
+  </ng-container>
+</app-card>

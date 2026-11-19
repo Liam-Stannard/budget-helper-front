@@ -1,0 +1,44 @@
+<app-card title="Spending pace" icon="speed" subtitle="Day {{ pace.dayOfMonth }} of {{ pace.daysInMonth }}">
+  <p class="headline">
+    <span class="amount">{{ pace.spentSoFar | currency }}</span> spent so far.
+    @if (pace.lastMonthToSameDay === 0 && pace.spentSoFar === 0) {
+    <span class="text-muted">Nothing spent by this point last month either.</span>
+    } @else if (differenceToLastMonth > 0) {
+    <span class="text-bad">{{ differenceToLastMonth | currency }} more</span> than by this point last month.
+    } @else if (differenceToLastMonth < 0) {
+    <span class="text-good">{{ -differenceToLastMonth | currency }} less</span> than by this point last month.
+    } @else {
+    The same as by this point last month.
+    }
+  </p>
+
+  <mat-divider />
+
+  <mat-list>
+    <mat-list-item>
+      <span matListItemTitle>Daily average</span>
+      <span matListItemMeta class="amount">{{ pace.dailyAverage | currency }}</span>
+    </mat-list-item>
+    <mat-list-item>
+      <span matListItemTitle>Projected month-end</span>
+      <span matListItemMeta class="amount" [class.text-bad]="projectedOverBudget">
+        {{ pace.projectedTotal | currency }}
+      </span>
+    </mat-list-item>
+    @if (totalBudget !== undefined) {
+    <mat-list-item>
+      <span matListItemTitle>Total budget</span>
+      <span matListItemMeta class="amount">{{ totalBudget | currency }}</span>
+    </mat-list-item>
+    }
+    <mat-list-item>
+      <span matListItemTitle>Last month total</span>
+      <span matListItemMeta class="amount">{{ pace.lastMonthTotal | currency }}</span>
+    </mat-list-item>
+  </mat-list>
+
+  <p class="footnote text-muted">
+    The projection assumes the rest of the month continues at the current daily average, so a
+    large bill early in the month pushes it up.
+  </p>
+</app-card>

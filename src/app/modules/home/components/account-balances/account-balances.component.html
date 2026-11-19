@@ -1,0 +1,23 @@
+<app-card title="Accounts" icon="account_balance">
+  @if (accounts.length > 0) {
+  <mat-nav-list>
+    @for (account of accounts; track account.id) {
+    <a mat-list-item [routerLink]="['/account', 'edit', account.id]">
+      <span matListItemTitle>{{ account.name }}</span>
+      <span matListItemMeta class="amount" [class.text-bad]="balance(account) < 0">
+        {{ balance(account) | currency }}
+      </span>
+    </a>
+    }
+  </mat-nav-list>
+  } @else {
+  <p class="dashboard-empty">No accounts yet.</p>
+  }
+
+  <ng-container card-actions>
+    @if (accounts.length === 0) {
+    <a mat-button routerLink="/account/add">Add account</a>
+    }
+    <a mat-button routerLink="/accounts">View all</a>
+  </ng-container>
+</app-card>

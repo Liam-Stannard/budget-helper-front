@@ -1,0 +1,25 @@
+<mat-card appearance="outlined" class="app-card">
+  @if (loading) {
+  <mat-progress-bar mode="indeterminate" class="loading-bar" />
+  }
+
+  @if (title) {
+  <mat-card-header>
+    @if (icon) {
+    <mat-icon mat-card-avatar class="avatar">{{ icon }}</mat-icon>
+    }
+    <mat-card-title>{{ title }}</mat-card-title>
+    @if (subtitle) {
+    <mat-card-subtitle>{{ subtitle }}</mat-card-subtitle>
+    }
+  </mat-card-header>
+  }
+
+  <mat-card-content>
+    <ng-content />
+  </mat-card-content>
+
+  <mat-card-actions align="end">
+    <ng-content select="[card-actions]" />
+  </mat-card-actions>
+</mat-card>

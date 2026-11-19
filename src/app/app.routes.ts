@@ -6,6 +6,7 @@ import { HomeComponent } from './modules/home/home.component';
 import { TransactionPageComponent } from './modules/transaction/components/transaction-page/transaction-page.component';
 import { TransactionDetailsComponent } from './modules/transaction/components/transaction-details/transaction-details.component';
 import { AccountListWrapperComponent } from './modules/account/components/account-list-wrapper/account-list-wrapper.component';
+import { BudgetPageComponent } from './modules/budget/components/budget-page/budget-page.component';
 import { AccountDetailsComponent } from './modules/account/components/account-details/account-details.component';
 
 export const routes: Routes = [
@@ -61,6 +62,12 @@ export const routes: Routes = [
     component: AccountDetailsComponent,
     path: 'account/:MODE',
     title: 'Add Account',
+    canActivate: [authGuard()],
+  },
+  {
+    component: BudgetPageComponent,
+    path: 'budgets',
+    title: 'Budgets',
     canActivate: [authGuard()],
   },
   { path: '**', redirectTo: 'home' },

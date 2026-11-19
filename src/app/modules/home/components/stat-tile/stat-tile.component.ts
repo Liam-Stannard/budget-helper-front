@@ -1,10 +1,10 @@
 import { Component, Input } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
+import { CardComponent } from '../../../../shared/components/card/card.component';
 
 @Component({
   selector: 'app-stat-tile',
   standalone: true,
-  imports: [MatCardModule],
+  imports: [CardComponent],
   templateUrl: './stat-tile.component.html',
   styleUrl: './stat-tile.component.scss',
 })

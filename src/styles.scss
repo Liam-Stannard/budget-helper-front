@@ -25,8 +25,13 @@ html {
   @include mat.core();
   @include mat.all-component-themes($light-theme);
 
+  // Outlined cards default to the page background colour, so they read as flat. Lift them onto
+  // the theme's surface-container tone so each card stands off the page.
+  --mdc-outlined-card-container-color: #{mat.get-theme-color($light-theme, surface-container-low)};
+
   @media (prefers-color-scheme: dark) {
     @include mat.all-component-colors($dark-theme);
+    --mdc-outlined-card-container-color: #{mat.get-theme-color($dark-theme, surface-container-high)};
   }
 }
 
@@ -91,4 +96,58 @@ body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
   background-color: var(--mat-app-background-color);
   color: var(--mat-app-text-color);
+}
+
+// Dashboard (home screen) — shared by the cards in modules/home/components.
+
+:root {
+  --series-food: #2a78d6;
+  --series-bill: #eb6834;
+  --series-subscription: #1baf7a;
+  --series-clothing: #eda100;
+  --series-income: #7a5cf0;
+  --chart-track: rgba(0, 0, 0, 0.06);
+  --status-good: #006300;
+  --status-warning: #a86b00;
+  --status-bad: #d03b3b;
+
+  @media (prefers-color-scheme: dark) {
+    --series-food: #3987e5;
+    --series-bill: #d95926;
+    --series-subscription: #199e70;
+    --series-clothing: #c98500;
+    --series-income: #8a6ff5;
+    --chart-track: rgba(255, 255, 255, 0.08);
+    --status-good: #0ca30c;
+    --status-warning: #e0a030;
+    --status-bad: #e66767;
+  }
+}
+
+.dashboard-empty {
+  padding: 1.5rem 0;
+  margin: 0;
+  text-align: center;
+  opacity: 0.6;
+}
+
+.amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.text-good {
+  color: var(--status-good);
+}
+
+.text-warning {
+  color: var(--status-warning);
+}
+
+.text-bad {
+  color: var(--status-bad);
+}
+
+.text-muted {
+  opacity: 0.65;
 }

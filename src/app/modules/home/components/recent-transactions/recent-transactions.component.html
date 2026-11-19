@@ -1,0 +1,28 @@
+<app-card title="Recent transactions" icon="receipt_long">
+  @if (transactions.length > 0) {
+  <mat-nav-list>
+    @for (transaction of transactions; track transaction.id) {
+    <a mat-list-item [routerLink]="['/transaction', viewMode, transaction.id]">
+      <span matListItemIcon class="swatch" [style.background-color]="color(transaction)"></span>
+      <span matListItemTitle>{{ transaction.title }}</span>
+      <span matListItemLine>
+        {{ transaction.date | date: 'd MMM' }} · {{ label(transaction.category) }} · {{ transaction.account.name }}
+      </span>
+      <span matListItemMeta class="amount" [class.text-good]="isIncome(transaction)">
+        {{ isIncome(transaction) ? '+' : '−' }}{{ amount(transaction) | currency }}
+      </span>
+    </a>
+    }
+  </mat-nav-list>
+  } @else {
+  <p class="dashboard-empty">No transactions in the last two months.</p>
+  }
+
+  <ng-container card-actions>
+    <a mat-button routerLink="/transactions">View all</a>
+    <a mat-flat-button [routerLink]="['/transaction', addMode]">
+      <mat-icon>add</mat-icon>
+      Add transaction
+    </a>
+  </ng-container>
+</app-card>

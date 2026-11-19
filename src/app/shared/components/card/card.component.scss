@@ -1,0 +1,35 @@
+:host {
+  display: block;
+}
+
+.app-card {
+  height: 100%;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+// The progress bar is absolutely positioned so toggling it doesn't shift the layout.
+.loading-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+// Header-less cards (e.g. stat tiles) still need breathing room above the content.
+.app-card > .mat-mdc-card-content:first-child {
+  padding-top: 16px;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+}
+
+// Nothing projected into [card-actions] leaves the row empty; drop it so it adds no padding.
+.mat-mdc-card-actions:empty {
+  display: none;
+}

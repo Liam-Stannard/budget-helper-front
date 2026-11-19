@@ -1,6 +1,5 @@
 import { Component, Input, OnDestroy, OnInit, signal } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { CardComponent } from '../../../../shared/components/card/card.component';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { AbstractNetworkingSignalComponent } from '../../../../core/component/abstract/abstract-networking-signals.component';
 import { Observable } from 'rxjs';
@@ -42,8 +41,7 @@ import { IAccount } from '../../../account/shared/account.interface';
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    MatCardModule,
-    MatProgressBarModule,
+    CardComponent,
     MatDatepickerModule,
     MatButtonModule,
     MatFormFieldModule,

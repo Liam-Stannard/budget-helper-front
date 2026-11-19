@@ -1,14 +1,7 @@
-<mat-card class="account-card flex">
-  @if (loading()) {
-  <mat-progress-bar mode="indeterminate" />
-  }
-
-  <mat-card-header>
-    <mat-card-title>Account</mat-card-title>
-  </mat-card-header>
+<app-card class="account-card" title="Account" [loading]="loading()">
   @if (!loading()) {
-  <mat-card-content>
     <form
+      id="account-form"
       [formGroup]="form"
       class="flex flex-col-start"
       (ngSubmit)="submit()"
@@ -48,19 +41,21 @@
         <mat-error>Enter a valid amount (e.g. 12.34)</mat-error>
         }
       </mat-form-field>
-
-      <mat-card-actions class="flex flex-row-end gap-20">
-        <button mat-button type="button" (click)="back()">Cancel</button>
-        <button
-          mat-raised-button
-          color="primary"
-          type="submit"
-          [disabled]="form.invalid"
-        >
-          Submit
-        </button>
-      </mat-card-actions>
     </form>
-  </mat-card-content>
   }
-</mat-card>
+
+  <ng-container card-actions>
+    @if (!loading()) {
+    <button mat-button type="button" (click)="back()">Cancel</button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      form="account-form"
+      [disabled]="form.invalid"
+    >
+      Submit
+    </button>
+    }
+  </ng-container>
+</app-card>

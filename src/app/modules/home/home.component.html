@@ -1,4 +1,4 @@
-<h1 class="mat-h1">Summary</h1>
+<h1 class="mat-h1">{{ currentMonthLabel }}</h1>
 
 @if (loading()) {
 <mat-progress-bar mode="indeterminate" />
@@ -7,18 +7,43 @@
 @if (!loading()) {
 <div class="stat-row">
   <app-stat-tile
-    label="Total this month"
-    [value]="(totalThisMonth() | currency)!"
-    [delta]="deltaText()"
-    [deltaIsGood]="deltaIsGood()"
+    label="Income this month"
+    [value]="(summary().income | currency)!"
   />
   <app-stat-tile
-    label="Transactions this month"
-    [value]="countThisMonth().toString()"
+    label="Spent this month"
+    [value]="(summary().spent | currency)!"
+    [delta]="spentDeltaText()"
+    [deltaIsGood]="spentDeltaIsGood()"
   />
-  <app-stat-tile label="Top category" [value]="topCategoryLabel()" />
+  <app-stat-tile
+    label="Net this month"
+    [value]="(summary().net | currency)!"
+    [delta]="savingsText()"
+    [deltaIsGood]="summary().savingsRate === undefined ? undefined : summary().net >= 0"
+  />
+  @if (accountsLoaded()) {
+  <app-stat-tile
+    label="Net worth"
+    [value]="(netWorth() | currency)!"
+    [delta]="accounts().length + (accounts().length === 1 ? ' account' : ' accounts')"
+  />
+  }
 </div>
 
-<h2 class="mat-h2">Spending by category this month</h2>
-<app-category-breakdown-chart [data]="breakdown()" />
+<div class="dashboard-grid">
+  <app-budget-progress
+    class="span-2"
+    [rows]="budgetRows()"
+    [monthElapsedPercent]="monthElapsedPercent()"
+  />
+  <app-spending-pace [pace]="pace()" [totalBudget]="totalBudget()" />
+  <app-recent-transactions class="span-2" [transactions]="recentTransactions()" />
+  <div class="stack">
+    <app-bills-due [bills]="billsDue()" />
+    @if (accountsLoaded()) {
+    <app-account-balances [accounts]="accounts()" />
+    }
+  </div>
+</div>
 }

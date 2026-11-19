@@ -1,0 +1,60 @@
+<app-card
+  class="budget-card"
+  title="Monthly budgets"
+  subtitle="Set a monthly limit for each category. Leave a field blank for no budget."
+  [loading]="loading() || saving"
+>
+  @if (!loading()) {
+  <form id="budget-form" class="fields" [formGroup]="form" (ngSubmit)="save()">
+    @for (category of categories; track category) {
+    <mat-form-field appearance="outline">
+      <mat-label>{{ label(category) }}</mat-label>
+      <span matTextPrefix>£&nbsp;</span>
+      <input
+        matInput
+        type="text"
+        inputmode="decimal"
+        [formControl]="form.controls[category]"
+        maxlength="32"
+        placeholder="No budget"
+      />
+      @if (form.controls[category].value !== '') {
+      <button
+        mat-icon-button
+        matSuffix
+        type="button"
+        [attr.aria-label]="'Clear ' + label(category) + ' budget'"
+        (click)="clear(category)"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+      }
+      @if (form.controls[category].hasError('pattern')) {
+      <mat-error>Enter a valid amount (e.g. 250 or 250.00)</mat-error>
+      } @else if (form.controls[category].hasError('positive')) {
+      <mat-error>Must be more than zero</mat-error>
+      }
+    </mat-form-field>
+    }
+
+    <p class="total">
+      Total monthly budget: <strong>{{ total | currency }}</strong>
+    </p>
+  </form>
+  }
+
+  <ng-container card-actions>
+    @if (!loading()) {
+    <button mat-button type="button" (click)="back()">Back</button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      form="budget-form"
+      [disabled]="form.invalid || form.pristine || saving"
+    >
+      Save
+    </button>
+    }
+  </ng-container>
+</app-card>

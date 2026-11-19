@@ -75,3 +75,13 @@ export class MockAccountApiService {
   postAccount = jest.fn(() => of(postPutAccountResponse));
   deleteAccount = jest.fn(() => of(undefined));
 }
+
+export class MockBudgetApiService {
+  getBudgetList = jest.fn(() =>
+    of({ budgetList: [{ category: 'FOOD', monthlyLimit: '100.0000' }] })
+  );
+  putBudget = jest.fn((category: string, monthlyLimit: string) =>
+    of({ budget: { category, monthlyLimit } })
+  );
+  deleteBudget = jest.fn(() => of(undefined));
+}

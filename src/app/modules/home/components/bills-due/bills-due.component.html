@@ -1,0 +1,23 @@
+<app-card title="Bills still to pay" icon="event_upcoming" [subtitle]="subtitle">
+  @if (bills.length > 0) {
+  <mat-list>
+    @for (bill of bills; track bill.title) {
+    <mat-list-item>
+      <mat-icon matListItemIcon [class.text-warning]="bill.daysUntilDue < 0">
+        {{ bill.daysUntilDue < 0 ? 'warning' : 'schedule' }}
+      </mat-icon>
+      <span matListItemTitle>{{ bill.title }}</span>
+      <span matListItemLine [class.text-warning]="bill.daysUntilDue < 0">
+        {{ dueText(bill) }} · {{ bill.expectedDate | date: 'd MMM' }} · {{ label(bill.category) }}
+      </span>
+      <span matListItemMeta class="amount">{{ bill.expectedAmount | currency }}</span>
+    </mat-list-item>
+    }
+  </mat-list>
+  <p class="footnote text-muted">
+    Bills and subscriptions from last month that haven't been recorded yet this month.
+  </p>
+  } @else {
+  <p class="dashboard-empty">All of last month's bills have been recorded this month.</p>
+  }
+</app-card>

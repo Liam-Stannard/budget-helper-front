@@ -5,7 +5,6 @@ import {
   filterExpenses,
   filterPreviousMonth,
   getMonthOverMonthDelta,
-  getTopCategory,
   getTotalAmount,
   sumByCategory,
 } from './home.utils';
@@ -142,24 +141,6 @@ describe('home.utils', () => {
         'FOOD',
         'CLOTHING',
       ]);
-    });
-  });
-
-  describe('getTopCategory', () => {
-    it('should return undefined for an empty breakdown', () => {
-      expect(getTopCategory([])).toBeUndefined();
-    });
-
-    it('should return the first (highest amount) entry', () => {
-      const breakdown = sumByCategory([
-        makeTransaction({ category: 'FOOD', amount: '5.00' }),
-        makeTransaction({ category: 'BILL', amount: '50.00' }),
-      ]);
-
-      expect(getTopCategory(breakdown)).toEqual({
-        category: 'BILL',
-        amount: 50,
-      });
     });
   });
 

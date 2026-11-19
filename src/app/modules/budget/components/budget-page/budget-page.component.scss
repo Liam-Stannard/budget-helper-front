@@ -1,0 +1,20 @@
+@use "../../../../../styles/variables" as vars;
+
+// Centred like the other form cards (account-card, transaction-card).
+.budget-card {
+  max-width: 36rem;
+  margin: vars.$spacing-lg auto;
+
+  @media (max-width: vars.$breakpoint-mobile) {
+    margin: vars.$spacing-sm auto;
+  }
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+}
+
+.total {
+  margin: 0;
+}

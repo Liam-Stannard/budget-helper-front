@@ -40,3 +40,5 @@ This is an Angular 18 standalone-components app (no `bootstrapModule`/root `NgMo
 ### UI
 
 Angular Material (`deeppurple-amber` prebuilt theme, see `angular.json`), animations via `provideAnimationsAsync()`.
+
+Prefer Material components over hand-rolled markup so styling stays consistent across the app. For content cards use the shared `app-card` (`shared/components/card/`) rather than a raw `mat-card`: it's an outlined Material card with optional `title`/`subtitle`/`icon` inputs, a default content slot, a `[card-actions]` slot for buttons, and a `loading` input that shows a progress bar along the top edge. For a form card, put `<form id="x">` in the content and give the submit button in `[card-actions]` a `form="x"` attribute (see `budget-page`, `account-card`, `login`). Outlined cards get a surface-container fill from the theme in `styles.scss`, so they stand off the page in both light and dark mode.

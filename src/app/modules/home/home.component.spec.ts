@@ -5,12 +5,19 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import dayjs from 'dayjs';
 import { HomeComponent } from './home.component';
-import { MockApiService, MockAuthService } from '../../../test/mockService';
+import {
+  MockAccountApiService,
+  MockApiService,
+  MockAuthService,
+  MockBudgetApiService,
+} from '../../../test/mockService';
 import { AuthService } from '../../core/auth/auth.service';
 import { TransactionApiService } from '../transaction/api/transaction-api.service';
+import { AccountApiService } from '../account/api/account-api.service';
+import { BudgetApiService } from '../budget/api/budget-api.service';
 import { ITransaction } from '../transaction/shared/transaction.interface';
 
 const account = { id: 1, name: 'Main' };
@@ -52,6 +59,8 @@ describe('HomeComponent', () => {
           provide: TransactionApiService,
           useClass: MockApiService,
         },
+        { provide: AccountApiService, useClass: MockAccountApiService },
+        { provide: BudgetApiService, useClass: MockBudgetApiService },
       ],
     }).compileComponents();
 
@@ -90,75 +99,119 @@ describe('HomeComponent', () => {
     });
   });
 
-  it('should not include transactions from a different month in the category breakdown', () => {
-    // the mock transaction is dated 2020-01-01, so it falls outside "this month"
-    expect(component['breakdown']()).toEqual([]);
+  it('should exclude transactions from other months from this month\'s summary', () => {
+    // the mock transaction is dated 2020-01-01
+    expect(component['summary']()).toEqual(
+      expect.objectContaining({ income: 0, spent: 0, net: 0 })
+    );
   });
 
-  describe('with a current-month transaction', () => {
-    beforeEach(() => {
-      component['transactions'].set([makeTransaction({ category: 'FOOD' })]);
-      fixture.detectChanges();
-    });
-
-    it('should compute the category breakdown for this month', () => {
-      expect(component['breakdown']()).toEqual([
-        { category: 'FOOD', amount: 10 },
-      ]);
-    });
-
-    it('should report the top category label', () => {
-      expect(component['topCategoryLabel']()).toBe('Food');
-    });
-  });
-
-  describe('with a current-month income transaction', () => {
+  describe('with current-month income and spend', () => {
     beforeEach(() => {
       component['transactions'].set([
-        makeTransaction({ category: 'FOOD', amount: '10.00' }),
-        makeTransaction({ category: 'INCOME', amount: '500.00' }),
+        makeTransaction({ id: 1, category: 'FOOD', amount: '120.00' }),
+        makeTransaction({ id: 2, category: 'INCOME', amount: '400.00' }),
       ]);
       fixture.detectChanges();
     });
 
-    it('should not count income toward "Total this month"', () => {
-      expect(component['totalThisMonth']()).toBe(10);
+    it('should split income from spend and compute the net', () => {
+      expect(component['summary']()).toEqual({
+        income: 400,
+        spent: 120,
+        net: 280,
+        savingsRate: 70,
+      });
+      expect(component['savingsText']()).toBe('70% of income saved');
     });
 
-    it('should not include income in the category breakdown', () => {
-      expect(component['breakdown']()).toEqual([
-        { category: 'FOOD', amount: 10 },
+    it('should report budget progress against the loaded budgets', () => {
+      expect(component['budgetRows']()).toEqual([
+        expect.objectContaining({
+          category: 'FOOD',
+          spent: 120,
+          limit: 100,
+          status: 'over',
+        }),
+      ]);
+      expect(component['totalBudget']()).toBe(100);
+    });
+
+    it('should list recent transactions newest first', () => {
+      expect(component['recentTransactions']().map((t) => t.id)).toEqual([
+        2, 1,
       ]);
     });
 
-    it('should still count the income transaction toward the transaction count', () => {
-      expect(component['countThisMonth']()).toBe(2);
+    it('should render every dashboard card', () => {
+      const element = fixture.nativeElement as HTMLElement;
+
+      for (const selector of [
+        'app-budget-progress',
+        'app-spending-pace',
+        'app-recent-transactions',
+        'app-bills-due',
+        'app-account-balances',
+      ]) {
+        expect(element.querySelector(selector)).not.toBeNull();
+      }
     });
   });
 
-  it('should exclude transactions from a different month from "this month" stats', () => {
-    // the mock transaction is dated 2020-01-01
-    expect(component['totalThisMonth']()).toBe(0);
-    expect(component['countThisMonth']()).toBe(0);
+  it('should report a savings placeholder when there is no income', () => {
+    component['transactions'].set([makeTransaction({ amount: '10.00' })]);
+
+    expect(component['savingsText']()).toBe('No income recorded yet');
   });
 
-  describe('with no transactions', () => {
-    beforeEach(() => {
+  it('should compute net worth from the loaded accounts', () => {
+    const accountApiService = TestBed.inject(
+      AccountApiService
+    ) as unknown as MockAccountApiService;
+    accountApiService.getAccountList.mockReturnValueOnce(
+      of({
+        accountList: [
+          { id: 1, name: 'Main', currentBalance: '1000.0000' },
+          { id: 2, name: 'Card', currentBalance: '-250.0000' },
+        ],
+      })
+    );
+
+    component['getData']();
+
+    expect(component['netWorth']()).toBe(750);
+  });
+
+  describe('when budgets fail to load', () => {
+    it('should still render the dashboard and notify the user', () => {
+      const budgetApiService = TestBed.inject(
+        BudgetApiService
+      ) as unknown as MockBudgetApiService;
+      const snackBar = TestBed.inject(MatSnackBar);
+      const snackBarSpy = jest.spyOn(snackBar, 'open').mockImplementation();
+      budgetApiService.getBudgetList.mockReturnValueOnce(
+        throwError(() => new Error('network down'))
+      );
+
+      component['getData']();
+
+      expect(component['loading']()).toBe(false);
+      expect(snackBarSpy).toHaveBeenCalledWith(
+        'Failed to load budgets',
+        'Dismiss',
+        expect.any(Object)
+      );
+    });
+  });
+
+  describe('spent-this-month delta', () => {
+    it('should not show a delta when last month had no spend by this point', () => {
       component['transactions'].set([]);
-      fixture.detectChanges();
+
+      expect(component['spentDeltaText']()).toBeUndefined();
     });
 
-    it('should fall back to a placeholder top category label', () => {
-      expect(component['topCategoryLabel']()).toBe('Not started');
-    });
-
-    it('should not show a delta when there is no previous month to compare against', () => {
-      expect(component['deltaText']()).toBeUndefined();
-    });
-  });
-
-  describe('month-over-month delta', () => {
-    it('should show a "bad" delta when spend increased vs last month', () => {
+    it('should show a "bad" delta when spending faster than last month', () => {
       component['transactions'].set([
         makeTransaction({ amount: '150.00' }),
         makeTransaction({
@@ -166,13 +219,14 @@ describe('HomeComponent', () => {
           date: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
         }),
       ]);
-      fixture.detectChanges();
 
-      expect(component['deltaText']()).toBe('▲ £50.00 (50%) vs last month');
-      expect(component['deltaIsGood']()).toBe(false);
+      expect(component['spentDeltaText']()).toBe(
+        '▲ £50.00 (50%) vs this point last month'
+      );
+      expect(component['spentDeltaIsGood']()).toBe(false);
     });
 
-    it('should show a "good" delta when spend decreased vs last month', () => {
+    it('should show a "good" delta when spending slower than last month', () => {
       component['transactions'].set([
         makeTransaction({ amount: '50.00' }),
         makeTransaction({
@@ -180,10 +234,11 @@ describe('HomeComponent', () => {
           date: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
         }),
       ]);
-      fixture.detectChanges();
 
-      expect(component['deltaText']()).toBe('▼ £50.00 (50%) vs last month');
-      expect(component['deltaIsGood']()).toBe(true);
+      expect(component['spentDeltaText']()).toBe(
+        '▼ £50.00 (50%) vs this point last month'
+      );
+      expect(component['spentDeltaIsGood']()).toBe(true);
     });
   });
 });

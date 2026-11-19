@@ -1,0 +1,45 @@
+.budget-row.mat-mdc-list-item {
+  height: auto;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.row-top {
+  display: flex !important;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.row-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.swatch {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 2px;
+}
+
+.row-detail {
+  display: block !important;
+  overflow: visible !important;
+  font-size: 0.75rem;
+}
+
+.bar-wrapper {
+  position: relative;
+  display: block;
+  margin: 0.5rem 0 0.25rem;
+}
+
+.pace-marker {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  margin-left: -1px;
+  background: currentColor;
+  opacity: 0.5;
+}
